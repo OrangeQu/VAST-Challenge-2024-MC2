@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q2 - 非法捕鱼特征 | FishEye Analytics</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="../scripts/viz-utils.js"></script>
+    <style>
+        .seq-dot { cursor: pointer; }
+        .seq-dot:hover { r: 5; stroke-width: 2; }
+        .seq-line { fill: none; stroke-width: 1.5; }
+        .seq-line:hover { stroke-width: 2.5; }
+        .fingerprint-cell { cursor: pointer; }
+        .fingerprint-cell:hover { stroke: white; stroke-width: 2; }
+        .timeline-bar { cursor: pointer; }
+        .timeline-bar:hover { opacity: 0.8; }
+        .night-loc-bar { cursor: pointer; }
+        .night-loc-bar:hover { opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="../index.html" class="nav-brand">
+            <div class="logo">FE</div>
+            <span>FishEye Analytics</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="../index.html">首页</a></li>
+            <li><a href="q1.html">Q1</a></li>
+            <li><a href="q2.html" class="active">Q2</a></li>
+            <li><a href="q3.html">Q3</a></li>
+            <li><a href="q4.html">Q4</a></li>
+            <li><a href="reflection.html">反思</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <a href="../index.html" class="back-link">← 返回总览</a>
+                <h1>Q2: SouthSeafood 非法行为</h1>
+                <p class="subtitle">可视化 SouthSeafood Express Corp 非法捕鱼操作的行为特征。它们的移动模式与其他渔船相比如何？它们在何时何地进行非法捕鱼？</p>
+            </div>
+
+            <!-- 分析摘要 -->
+            <div class="viz-card">
+                <div class="viz-title">📝 分析摘要</div>
+                <div class="viz-subtitle">Q2: SouthSeafood 非法行为（约250字）</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; padding: 0.5rem 0;">
+                    <p>SouthSeafood Express Corp 运营两艘渔船：<strong>Snapper Snatcher</strong> 和 <strong>Roach Robber</strong>。结合位置序列、停留时长与夜间活动特征，可以将其异常表现概括为三类高层次行为模式、五个量化异常指标。</p>
+                    <p style="margin-top: 0.8rem;"><strong>(1) 保护区反复入侵：</strong>Snapper Snatcher 在 2035 年 3 月至 5 月期间多次进入 Ghoti Preserve 保护区，位置序列中出现了清晰的“渔场→保护区→渔场”转换模式（F→P→F）。这说明其并非偶发经过，而是存在重复进入高风险区域的行为。</p>
+
+                    <p style="margin-top: 0.8rem;"><strong>(2) 异常短停留与高频穿梭：</strong>两艘船的平均停留时间（Snapper Snatcher 8.55h，Roach Robber 4.74h）远低于船队平均 33.43h，说明其作业节奏明显更快，呈现“快进快出”的异常模式，符合规避监测的风险特征。</p>
+                    <p style="margin-top: 0.8rem;"><strong>(3) 夜间高频作业：</strong>Roach Robber 的夜间捕鱼率为 40.5%，Snapper Snatcher 为 34.3%，均高于船队平均 29.2%。夜间作业本身不必然违法，但当它与保护区入侵、短停留等异常行为同时出现时，可作为强烈的可疑信号。</p>
+                </div>
+            </div>
+
+            <!-- 统计 -->
+            <div class="stats-bar" id="stats-bar"></div>
+
+            <!-- 图表1: 基于位置序列的船舶轨迹地图 -->
+            <div class="viz-card">
+                <div class="viz-title">🗺️ Oceanus 船舶轨迹地图</div>
+                <div class="viz-subtitle">Roach Robber 使用真实 ping 数据；Snapper Snatcher 使用位置编码序列的空间映射</div>
+
+                <div id="map-timeline-control" style="display:flex;align-items:center;gap:12px;padding:8px 16px;background:#f8fafc;border-radius:8px;margin:0 16px;">
+                    <span style="font-size:12px;font-weight:600;color:#475569;white-space:nowrap;">📅 选择月份：</span>
+                    <div id="month-buttons" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+                    <span id="month-label" style="font-size:11px;color:#64748b;margin-left:auto;">显示全部月份</span>
+                    <span id="data-range-hint" style="font-size:10px;color:#94a3b8;background:#f1f5f9;padding:2px 8px;border-radius:10px;"></span>
+                </div>
+
+                <div class="viz-content" id="chart-map"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>Snapper Snatcher（玫瑰红）的位置序列显示其多次从渔场（F）切换到保护区（P），形成"F→P→F"的异常入侵模式。需要说明的是，Snapper Snatcher 的轨迹是基于位置编码序列与地点坐标的空间映射；Roach Robber（天蓝）则使用真实 ping 数据，更适合观察实际移动路径。使用上方月份按钮可筛选查看各月活动分布。</p>
+
+                </div>
+            </div>
+
+            <!-- 图表2: 可疑行为分类统计 -->
+            <div class="viz-card">
+                <div class="viz-title">🚨 异常行为特征对比</div>
+                <div class="viz-subtitle">SouthSeafood 船舶的 5 个异常指标及与船队平均的对比</div>
+                <div class="viz-content" id="chart-behaviors"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>SouthSeafood 船舶最突出的异常指标是：<strong>平均停留时间</strong>（仅为船队的 1/4~1/7）、<strong>夜间捕鱼率</strong>（高于船队平均）和<strong>日移动频率</strong>（更频繁的地点切换）。其中 Snapper Snatcher 的保护区停留比例也明显高于常规船只，说明其在高风险区域停留更久。</p>
+                </div>
+            </div>
+
+            <!-- 图表3: 移动模式指纹差异矩阵 -->
+            <div class="viz-card">
+                <div class="viz-title">🔍 位置转换差异指纹</div>
+                <div class="viz-subtitle">SouthSeafood 与船队的位置转换概率差异（红色 = SS 偏高，蓝色 = SS 偏低）</div>
+                <div class="viz-content" id="chart-fingerprint"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>差异指纹显示：Snapper Snatcher 的 <strong>O→P 和 P→O 转换</strong>（从其他区域进入/离开保护区）明显高于船队平均，说明其更频繁接近并进入保护区。Roach Robber 的 <strong>C→F 和 F→C 转换</strong>偏高，表明其在城市和渔场之间高频往返，行为节奏更不稳定。</p>
+                </div>
+            </div>
+
+            <!-- 图表4: 夜间活动分析 -->
+
+            <div class="viz-card">
+                <div class="viz-title">🌙 夜间捕鱼率对比</div>
+                <div class="viz-subtitle">SouthSeafood 船舶夜间捕鱼率与船队平均对比</div>
+
+                <div class="viz-content" id="chart-night"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>Roach Robber 的夜间捕鱼率高达 40.5%，Snapper Snatcher 也达到 34.3%，均高于船队平均 29.2%。夜间作业本身不必然违法，但与保护区入侵和异常短停留共同出现时，可作为高风险信号。</p>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============================================================
+    // Q2: SouthSeafood 非法行为 - 改进版
+    // ============================================================
+    async function init() {
+        const data = await loadProcessedData();
+        const geo = await loadGeography();
+        const { vessels, southseafood_vessels, location_coords } = data;
+
+        const ssVessels = southseafood_vessels || [];
+        const ssFeatures = ssVessels.map(v => v.features).filter(Boolean);
+        const avgNightFishing = d3.mean(ssFeatures, d => d.night_fishing_ratio) || 0;
+        const avgDwell = d3.mean(ssFeatures, d => d.avg_dwell_hours) || 0;
+        const fleetAvgNightFishing = d3.mean(vessels, d => d.night_fishing_ratio) || 0;
+        const fleetAvgDwell = d3.mean(vessels, d => d.avg_dwell_hours) || 0;
+
+        document.getElementById('stats-bar').innerHTML = `
+            <div class="stat-item"><div class="stat-value">${(avgNightFishing * 100).toFixed(0)}%</div><div class="stat-label">SS 夜间捕鱼率</div></div>
+            <div class="stat-item"><div class="stat-value">${(fleetAvgNightFishing * 100).toFixed(0)}%</div><div class="stat-label">船队夜间捕鱼平均</div></div>
+            <div class="stat-item"><div class="stat-value">${avgDwell.toFixed(1)}h</div><div class="stat-label">SS 平均停留时间</div></div>
+            <div class="stat-item"><div class="stat-value">${fleetAvgDwell.toFixed(1)}h</div><div class="stat-label">船队平均停留时间</div></div>
+        `;
+
+        drawVesselMap(data, geo);
+        drawSuspiciousBehaviors(data);
+        drawFingerprintDiff(data);
+        drawNightActivityByLocation(data);
+
+    }
+
+    // ============================================================
+    // 图表1: Oceanus 船舶轨迹地图（使用真实ping数据）
+    // ============================================================
+    async function drawVesselMap(data, geo) {
+        const container = document.getElementById('chart-map');
+        if (!container) return;
+        container.innerHTML = '';
+
+        const { width, height } = getResponsiveSize(container);
+        const margin = { top: 20, right: 20, bottom: 20, left: 20 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+        const lonExtent = [-167.5, -163.0];
+        const latExtent = [38.0, 40.8];
+        const xScale = d3.scaleLinear().domain(lonExtent).range([margin.left + 20, margin.left + innerW - 20]);
+        const yScale = d3.scaleLinear().domain(latExtent).range([margin.top + innerH - 20, margin.top + 20]);
+
+        const locationCoords = data.location_coords || {};
+
+        // 加载 vessel_movements_v2.json 获取真实ping数据
+        let movementsData = {};
+        try {
+            const resp = await fetch('../data/vessel_movements_v2.json');
+            movementsData = await resp.json();
+        } catch(e) {
+            console.warn('无法加载 vessel_movements_v2.json，使用编码序列数据', e);
+        }
+
+        // 构建 SS 船舶ID到movements key的映射
+        const ssVessels = (data.southseafood_vessels || []).filter(v => v && v.vessel_info);
+        const ssIds = new Set(ssVessels.map(v => v.vessel_info.id));
+
+        // 从 movementsData 中找到 SS 船舶
+        const ssMovementsKeys = {};
+        for (const [key, val] of Object.entries(movementsData)) {
+            const name = (val.name || '').toLowerCase().replace(/\s+/g, '');
+            if (name.includes('roach') || name.includes('robber')) {
+                ssMovementsKeys['Roach Robber'] = key;
+            }
+            if (name.includes('snapper') || name.includes('snatcher')) {
+                ssMovementsKeys['Snapper Snatcher'] = key;
+            }
+        }
+
+        // 获取所有船舶的ping数据（用于对比）
+        const allFleetPings = [];
+        const fleetVesselKeys = Object.keys(movementsData).filter(k => !Object.values(ssMovementsKeys).includes(k));
+        // 随机选取2艘其他渔船作为对比（减少视觉杂乱）
+        const sampleFleetKeys = fleetVesselKeys.sort(() => Math.random() - 0.5).slice(0, 2);
+
+
+        // 构建轨迹数据
+        const vesselTrajectories = [];
+
+        // 1. Roach Robber - 使用真实ping数据
+        if (ssMovementsKeys['Roach Robber'] && movementsData[ssMovementsKeys['Roach Robber']]) {
+            const pings = movementsData[ssMovementsKeys['Roach Robber']].pings || [];
+            const traj = pings.map((p, i) => ({
+                x: xScale(p.lon),
+                y: yScale(p.lat),
+                month: new Date(p.time).getMonth(),
+
+                date: new Date(p.time),
+                index: i,
+                locType: p.loc_type || 'unknown',
+                location: p.location || '',
+                lon: p.lon,
+                lat: p.lat,
+                dwell: p.dwell || 0,
+                isProtected: (p.loc_type === 'protected' || (p.location || '').toLowerCase().includes('preserve')),
+                isFishing: p.loc_type === 'fishing',
+                isCity: p.loc_type === 'city',
+                isOther: p.loc_type === 'navigation' || p.loc_type === 'exit' || p.loc_type === 'unknown'
+            }));
+            vesselTrajectories.push({
+                name: 'Roach Robber',
+                color: '#0ea5e9',
+                points: traj,
+                isSS: true,
+                pingCount: pings.length
+            });
+        }
+
+        // 2. Snapper Snatcher - 使用 location_sequence + 具体地点坐标
+        const snapperVessel = ssVessels.find(v => v.vessel_info.name === 'Snapper Snatcher');
+        if (snapperVessel) {
+            // 对连续相同编码去重，减少轨迹线杂乱
+            const rawSeq = snapperVessel.features.location_sequence || [];
+            const seq = rawSeq.filter((code, i, arr) => i === 0 || code !== arr[i - 1]);
+
+            const firstSeen = new Date(snapperVessel.features.first_seen);
+            const lastSeen = new Date(snapperVessel.features.last_seen);
+            const totalMs = lastSeen - firstSeen;
+
+            // 为每个编码分配具体地点（基于 region_visits 和 city_visits）
+            const regionVisits = snapperVessel.features.region_visits || {};
+            const cityVisits = snapperVessel.features.city_visits || {};
+
+            // 构建编码到具体地点的映射（轮询分配）
+            const codeLocationPool = {
+                'F': Object.keys(regionVisits).filter(k => ['Wrasse Beds', 'Cod Table', 'Tuna Shelf'].includes(k)),
+                'P': Object.keys(regionVisits).filter(k => ['Ghoti Preserve', 'Nemo Reef', 'Don Limpet Preserve'].includes(k)),
+                'C': Object.keys(cityVisits).map(k => k.replace('City of ', '')),
+                'O': ['Suna Island', 'Thalassa Retreat', 'Makara Shoal', 'Silent Sanctuary',
+                      'Exit West', 'Exit East', 'Exit South', 'Exit North',
+                      'Nav 1', 'Nav 2', 'Nav 3', 'Nav A', 'Nav B', 'Nav C', 'Nav D', 'Nav E']
+            };
+
+            // 如果 region_visits/city_visits 为空，使用默认
+            if (codeLocationPool['F'].length === 0) codeLocationPool['F'] = ['Wrasse Beds', 'Cod Table', 'Tuna Shelf'];
+            if (codeLocationPool['P'].length === 0) codeLocationPool['P'] = ['Ghoti Preserve', 'Nemo Reef', 'Don Limpet Preserve'];
+            if (codeLocationPool['C'].length === 0) codeLocationPool['C'] = ['Lomark', 'Paackland', 'Himark'];
+
+            const codeCounters = { 'F': 0, 'P': 0, 'C': 0, 'O': 0 };
+
+            function getNextLocation(code) {
+                const pool = codeLocationPool[code] || codeLocationPool['O'];
+                if (pool.length === 0) return null;
+                const idx = codeCounters[code] % pool.length;
+                codeCounters[code]++;
+                return pool[idx];
+            }
+
+            const traj = seq.map((code, i) => {
+                const locName = getNextLocation(code);
+                const coord = locationCoords[locName];
+                if (!coord) return null;
+                const t = firstSeen.getTime() + (totalMs * i / seq.length);
+                const d = new Date(t);
+                return {
+                    x: xScale(coord[0]),
+                    y: yScale(coord[1]),
+                    month: d.getMonth(),
+
+                    date: d,
+                    index: i,
+                    code: code,
+                    location: locName,
+                    lon: coord[0],
+                    lat: coord[1],
+                    isProtected: code === 'P',
+                    isFishing: code === 'F',
+                    isCity: code === 'C',
+                    isOther: code === 'O',
+                    isMappedSequence: true
+                };
+            }).filter(Boolean);
+
+            vesselTrajectories.push({
+                name: 'Snapper Snatcher',
+                color: '#e11d48',
+                points: traj,
+                isSS: true,
+                pingCount: seq.length
+            });
+
+        }
+
+        // 3. 其他渔船（对比用）
+        sampleFleetKeys.forEach(key => {
+            const vessel = movementsData[key];
+            if (!vessel || !vessel.pings) return;
+            const pings = vessel.pings;
+            // 降采样到最多500个点
+            const step = Math.max(1, Math.floor(pings.length / 500));
+            const sampled = pings.filter((_, i) => i % step === 0);
+            const traj = sampled.map((p, i) => ({
+                x: xScale(p.lon),
+                y: yScale(p.lat),
+                month: new Date(p.time).getMonth() - 1,
+
+                date: new Date(p.time),
+                index: i,
+                locType: p.loc_type || 'unknown',
+                location: p.location || '',
+                lon: p.lon,
+                lat: p.lat
+            }));
+            vesselTrajectories.push({
+                name: vessel.name || key,
+                color: '#94a3b8',
+                points: traj,
+                isSS: false,
+                pingCount: pings.length,
+                opacity: 0.12
+
+            });
+        });
+
+        // 计算所有SS船舶的时间范围
+        const allSSPoints = vesselTrajectories.filter(v => v.isSS).flatMap(v => v.points);
+        const allMonths = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+        const ssMonths = [...new Set(allSSPoints.map(p => p.month))].sort((a,b) => a-b);
+        const minMonth = d3.min(ssMonths) ?? 0;
+        const maxMonth = d3.max(ssMonths) ?? 0;
+        const monthValues = allMonths
+            .map((label, value) => ({ label, value }))
+            .filter(d => d.value >= minMonth && d.value <= maxMonth);
+        const dataRangeText = `SS 数据覆盖：${allMonths[minMonth]} ~ ${allMonths[maxMonth]}`;
+
+        const svg = d3.select(container).append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .style('background', '#f0f9ff')
+            .style('border-radius', '8px');
+
+        const staticLayer = svg.append('g').attr('class', 'static-map-content');
+        const dynamicGroup = svg.append('g').attr('class', 'dynamic-map-content');
+
+        const keyLocs = [
+            { name: 'Port Grove', kind: 'city' },
+            { name: 'Haacklee', kind: 'city' },
+            { name: 'Lomark', kind: 'city' },
+            { name: 'Wrasse Beds', kind: 'fishing' },
+            { name: 'Cod Table', kind: 'fishing' },
+            { name: 'Ghoti Preserve', kind: 'protected' },
+            { name: 'Nemo Reef', kind: 'protected' },
+            { name: 'Don Limpet Preserve', kind: 'protected' }
+        ];
+        const keyPoints = keyLocs
+            .map(d => ({ name: d.name, coords: locationCoords[d.name], kind: d.kind }))
+            .filter(d => Array.isArray(d.coords));
+
+        function drawBaseMap() {
+            const gridGroup = staticLayer.append('g').attr('class', 'map-grid');
+            for (let lon = -167; lon <= -163; lon += 1) {
+                gridGroup.append('line')
+                    .attr('x1', xScale(lon)).attr('x2', xScale(lon))
+                    .attr('y1', yScale(latExtent[0])).attr('y2', yScale(latExtent[1]))
+                    .attr('stroke', '#dbeafe').attr('stroke-width', 0.5).attr('stroke-dasharray', '3,3');
+            }
+            for (let lat = 38; lat <= 40; lat += 0.5) {
+                gridGroup.append('line')
+                    .attr('x1', xScale(lonExtent[0])).attr('x2', xScale(lonExtent[1]))
+                    .attr('y1', yScale(lat)).attr('y2', yScale(lat))
+                    .attr('stroke', '#dbeafe').attr('stroke-width', 0.5).attr('stroke-dasharray', '3,3');
+            }
+
+            const sunaIsland = (geo.islands || []).find(i => i.name === 'Suna Island');
+            if (sunaIsland?.coordinates) {
+                const coords = sunaIsland.coordinates[0] || sunaIsland.coordinates;
+                staticLayer.append('polygon')
+                    .attr('points', coords.map(c => [xScale(c[0]), yScale(c[1])].join(',')).join(' '))
+                    .attr('fill', '#d9e6b2').attr('stroke', '#8ba34e').attr('stroke-width', 1.5).attr('opacity', 0.8);
+            }
+
+            (geo.protected_areas || []).forEach(pa => {
+                if (!pa.coordinates) return;
+                const coords = pa.coordinates[0] || pa.coordinates;
+                staticLayer.append('polygon')
+                    .attr('points', coords.map(c => [xScale(c[0]), yScale(c[1])].join(',')).join(' '))
+                    .attr('fill', pa.name === 'Ghoti Preserve' ? '#fecaca' : pa.name === 'Nemo Reef' ? '#fed7aa' : '#fef08a')
+                    .attr('stroke', pa.name === 'Ghoti Preserve' ? '#ef4444' : pa.name === 'Nemo Reef' ? '#f97316' : '#eab308')
+                    .attr('stroke-width', 1.5).attr('stroke-dasharray', '5,3').attr('opacity', 0.35);
+            });
+
+            (geo.fishing_grounds || []).forEach(fg => {
+                if (!fg.coordinates) return;
+                const coords = fg.coordinates[0] || fg.coordinates;
+                staticLayer.append('polygon')
+                    .attr('points', coords.map(c => [xScale(c[0]), yScale(c[1])].join(',')).join(' '))
+                    .attr('fill', '#bfdbfe').attr('stroke', '#3b82f6').attr('stroke-width', 1).attr('opacity', 0.28);
+            });
+
+            (geo.cities || []).forEach(city => {
+                if (!city.coordinates) return;
+                const cx = xScale(city.coordinates[0]), cy = yScale(city.coordinates[1]);
+                staticLayer.append('circle').attr('cx', cx).attr('cy', cy).attr('r', 4)
+                    .attr('fill', '#8b5cf6').attr('stroke', 'white').attr('stroke-width', 1.5);
+                staticLayer.append('text').attr('x', cx + 6).attr('y', cy + 3)
+                    .style('font-size', '8px').style('fill', '#4a4a4a').style('font-weight', '500').text(city.name);
+            });
+
+            keyPoints.forEach(d => {
+                const [x, y] = [xScale(d.coords[0]), yScale(d.coords[1])];
+                staticLayer.append('circle')
+                    .attr('cx', x).attr('cy', y)
+                    .attr('r', d.kind === 'protected' ? 7 : d.kind === 'fishing' ? 6 : 5)
+                    .attr('fill', d.kind === 'protected' ? '#ef4444' : d.kind === 'fishing' ? '#3b82f6' : '#8b5cf6')
+                    .attr('opacity', 0.7)
+                    .attr('stroke', 'white').attr('stroke-width', 1.2);
+                staticLayer.append('text')
+                    .attr('x', x + 8).attr('y', y - 8)
+                    .style('font-size', '8px').style('font-weight', '600')
+                    .style('fill', d.kind === 'protected' ? '#991b1b' : d.kind === 'fishing' ? '#1e40af' : '#4c1d95')
+                    .text(d.name);
+            });
+
+            // 图例 - 合并去重，分为三个区域
+            const legendGroup = staticLayer.append('g').attr('transform', `translate(${margin.left + 10}, ${margin.top + 10})`);
+
+            // 区域1: 地理要素
+            const geoTitle = legendGroup.append('text')
+                .attr('x', 0).attr('y', 0)
+                .style('font-size', '10px').style('font-weight', '700').style('fill', '#334155')
+                .text('📍 地理要素');
+            const geoItems = [
+                { color: '#d9e6b2', label: '岛屿', type: 'rect' },
+                { color: '#fecaca', label: '保护区', type: 'rect' },
+                { color: '#bfdbfe', label: '渔场', type: 'rect' },
+                { color: '#8b5cf6', label: '城市/港口', type: 'circle' },
+            ];
+            geoItems.forEach((item, i) => {
+                const ly = 14 + i * 16;
+                if (item.type === 'rect') {
+                    legendGroup.append('rect').attr('x', 0).attr('y', ly).attr('width', 10).attr('height', 10)
+                        .attr('fill', item.color).attr('stroke', '#94a3b8').attr('stroke-width', 0.5).attr('rx', 2);
+                } else {
+                    legendGroup.append('circle').attr('cx', 5).attr('cy', ly + 5).attr('r', 4)
+                        .attr('fill', item.color).attr('stroke', 'white').attr('stroke-width', 1);
+                }
+                legendGroup.append('text').attr('x', 16).attr('y', ly + 9)
+                    .style('font-size', '9px').style('fill', '#475569').text(item.label);
+            });
+
+            // 区域2: 船舶轨迹
+            const shipY = 14 + geoItems.length * 16 + 6;
+            const shipTitle = legendGroup.append('text')
+                .attr('x', 0).attr('y', shipY)
+                .style('font-size', '10px').style('font-weight', '700').style('fill', '#334155')
+                .text('🚢 船舶轨迹');
+            const shipItems = [
+                { color: '#e11d48', label: 'Snapper Snatcher', type: 'line' },
+                { color: '#0ea5e9', label: 'Roach Robber', type: 'line' },
+                { color: '#94a3b8', label: '其他渔船（对比）', type: 'line' },
+            ];
+            shipItems.forEach((item, i) => {
+                const ly = shipY + 14 + i * 16;
+                legendGroup.append('line').attr('x1', 0).attr('x2', 12).attr('y1', ly + 5).attr('y2', ly + 5)
+                    .attr('stroke', item.color).attr('stroke-width', 2.5).attr('opacity', 0.8);
+                legendGroup.append('text').attr('x', 16).attr('y', ly + 9)
+                    .style('font-size', '9px').style('fill', '#475569').text(item.label);
+            });
+
+        }
+
+        function renderMap(selectedMonth) {
+            dynamicGroup.selectAll('*').remove();
+            const monthLabel = document.getElementById('month-label');
+            if (monthLabel) {
+                const label = monthValues.find(d => d.value === selectedMonth)?.label || '';
+                monthLabel.textContent = selectedMonth === null ? '显示全部月份' : `显示 ${label} 活动`;
+            }
+
+            // 先绘制其他渔船（底层，半透明）
+            vesselTrajectories.filter(v => !v.isSS).forEach(vp => {
+                let pts = vp.points;
+                // 修复：当 selectedMonth 为 null 时显示全部，否则按月份筛选
+                if (selectedMonth !== null && selectedMonth !== undefined) {
+                    pts = pts.filter(p => p.month === selectedMonth);
+                }
+
+                if (pts.length < 2) return;
+
+                const lineGen = d3.line()
+                    .x(d => d.x).y(d => d.y)
+                    .curve(d3.curveCatmullRom.alpha(0.3));
+
+                dynamicGroup.append('path')
+                    .attr('d', lineGen(pts))
+                    .attr('stroke', vp.color)
+                    .attr('stroke-width', 1)
+                    .attr('opacity', 0.2)
+                    .attr('stroke-linecap', 'round')
+                    .attr('stroke-linejoin', 'round')
+                    .attr('fill', 'none');
+            });
+
+            // 再绘制 SS 船舶（上层，高亮）
+            vesselTrajectories.filter(v => v.isSS).forEach(vp => {
+                let pts = vp.points;
+                if (selectedMonth !== null && selectedMonth !== undefined) {
+                    pts = pts.filter(p => p.month === selectedMonth);
+                }
+                if (pts.length < 2) return;
+
+                const lineGen = d3.line()
+                    .x(d => d.x).y(d => d.y)
+                    .curve(d3.curveCatmullRom.alpha(0.3));
+
+                dynamicGroup.append('path')
+                    .attr('d', lineGen(pts))
+                    .attr('class', 'seq-line')
+                    .attr('stroke', vp.color)
+                    .attr('stroke-width', 2.5)
+                    .attr('opacity', 0.85)
+                    .attr('stroke-linecap', 'round')
+                    .attr('stroke-linejoin', 'round')
+                    .attr('fill', 'none');
+
+                // 只标记保护区入侵点（P类型）和起点/终点
+                const protectedPts = pts.filter(p => p.isProtected);
+                protectedPts.forEach(p => {
+                    dynamicGroup.append('circle')
+                        .attr('cx', p.x).attr('cy', p.y)
+                        .attr('r', 7)
+                        .attr('fill', '#22c55e')
+                        .attr('stroke', '#dc2626')
+                        .attr('stroke-width', 2.5)
+                        .attr('opacity', 0.95)
+                        .append('title')
+                        .text(`${vp.name}\n⚠️ 保护区入侵!\n地点: ${p.location}\n时间: ${p.date.toLocaleString()}\n坐标: (${p.lon.toFixed(4)}, ${p.lat.toFixed(4)})`);
+                });
+
+                // 起点/终点标记
+                if (pts.length > 0) {
+                    const first = pts[0], last = pts[pts.length - 1];
+                    dynamicGroup.append('circle').attr('cx', first.x).attr('cy', first.y)
+                        .attr('r', 6).attr('fill', '#22c55e').attr('stroke', 'white').attr('stroke-width', 2).attr('opacity', 0.9);
+                    dynamicGroup.append('text').attr('x', first.x + 8).attr('y', first.y + 3)
+                        .style('font-size', '9px').style('font-weight', '700').style('fill', '#16a34a').text('起点');
+                    dynamicGroup.append('circle').attr('cx', last.x).attr('cy', last.y)
+                        .attr('r', 6).attr('fill', '#dc2626').attr('stroke', 'white').attr('stroke-width', 2).attr('opacity', 0.9);
+                    dynamicGroup.append('text').attr('x', last.x + 8).attr('y', last.y + 3)
+                        .style('font-size', '9px').style('font-weight', '700').style('fill', '#dc2626').text('终点');
+                }
+
+            });
+        }
+
+        drawBaseMap();
+        renderMap(null);
+
+        // 显示数据范围提示
+        const dataRangeHint = document.getElementById('data-range-hint');
+        if (dataRangeHint) dataRangeHint.textContent = dataRangeText;
+
+        const monthButtons = document.getElementById('month-buttons');
+        const monthLabel = document.getElementById('month-label');
+        if (!monthButtons || !monthLabel) return;
+        monthButtons.innerHTML = '';
+
+        const allBtn = document.createElement('button');
+        allBtn.textContent = '全部';
+        allBtn.style.cssText = 'padding:4px 12px;border:1px solid #cbd5e1;border-radius:16px;background:#fff;cursor:pointer;font-size:11px;font-weight:600;color:#475569;transition:all 0.2s;';
+        allBtn.onclick = () => {
+            renderMap(null);
+            monthButtons.querySelectorAll('button').forEach(b => { b.style.background = '#fff'; b.style.color = '#475569'; b.style.borderColor = '#cbd5e1'; });
+            allBtn.style.background = '#3b82f6'; allBtn.style.color = '#fff'; allBtn.style.borderColor = '#3b82f6';
+        };
+        allBtn.style.background = '#3b82f6'; allBtn.style.color = '#fff'; allBtn.style.borderColor = '#3b82f6';
+        monthButtons.appendChild(allBtn);
+
+        monthValues.forEach(({ label, value }) => {
+            const btn = document.createElement('button');
+            btn.textContent = label;
+            btn.style.cssText = 'padding:4px 12px;border:1px solid #cbd5e1;border-radius:16px;background:#fff;cursor:pointer;font-size:11px;font-weight:500;color:#475569;transition:all 0.2s;';
+            btn.onclick = () => {
+                renderMap(value);
+                monthButtons.querySelectorAll('button').forEach(b => { b.style.background = '#fff'; b.style.color = '#475569'; b.style.borderColor = '#cbd5e1'; });
+                btn.style.background = '#3b82f6'; btn.style.color = '#fff'; btn.style.borderColor = '#3b82f6';
+            };
+            monthButtons.appendChild(btn);
+        });
+    }
+
+    // ============================================================
+    // 图表2: 可疑行为分类统计（差异倍数图）
+    // ============================================================
+    function drawSuspiciousBehaviors(data) {
+
+        const container = document.getElementById('chart-behaviors');
+        const { width, height } = getResponsiveSize(container);
+        const margin = { top: 40, right: 140, bottom: 30, left: 180 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+
+        const ssVessels = data.southseafood_vessels || [];
+        const ssFeatures = ssVessels.map(v => v.features).filter(Boolean);
+        const fleetAvg = {};
+        const ssAvg = {};
+
+        const behaviors = [
+            { key: 'protected_dwell_ratio', label: '🚫 保护区停留比例', desc: 'SS 在保护区内停留时间占比异常高', unit: '×' },
+            { key: 'night_fishing_ratio', label: '🌙 夜间捕鱼率', desc: 'SS 夜间捕鱼活动比例高于正常水平', unit: '×' },
+            { key: 'avg_dwell_hours', label: '⏱️ 平均停留时间', desc: 'SS 在每个地点停留时间极短（快速穿梭）', unit: '×', reverse: true },
+            { key: 'locations_per_day', label: '📍 日移动频率', desc: 'SS 每天访问更多地点（活动范围广）', unit: '×' },
+            { key: 'entropy', label: '🔄 移动熵', desc: 'SS 移动模式更混乱、不可预测', unit: '×' },
+        ];
+
+        behaviors.forEach(b => {
+            const fleetVals = data.vessels.map(v => v[b.key]).filter(v => v != null);
+            const ssVals = ssFeatures.map(v => v[b.key]).filter(v => v != null);
+            fleetAvg[b.key] = d3.mean(fleetVals) || 0;
+            ssAvg[b.key] = d3.mean(ssVals) || 0;
+        });
+
+        const behaviorData = behaviors.map(b => {
+            const fleet = fleetAvg[b.key];
+            const ss = ssAvg[b.key];
+            let ratio = fleet > 0 ? ss / fleet : ss;
+            if (b.reverse) ratio = ss > 0 ? fleet / ss : fleet;
+            return { ...b, fleet, ss, ratio: Math.min(ratio, 10), isAnomaly: ratio > 1.3 };
+        });
+
+        behaviorData.sort((a, b) => b.ratio - a.ratio);
+
+        const svg = d3.select(container).append('svg')
+            .attr('width', width).attr('height', height)
+            .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+        const yScale = d3.scaleBand()
+            .domain(behaviorData.map(d => d.label))
+            .range([0, innerH]).padding(0.3);
+
+        const maxRatio = d3.max(behaviorData, d => d.ratio);
+        const xDomain = Math.max(1.5, Math.ceil(maxRatio));
+        const xScale = d3.scaleLinear().domain([0, xDomain]).range([0, innerW]);
+        const baselineX = xScale(1);
+
+        svg.append('rect').attr('x', 0).attr('y', 0).attr('width', baselineX).attr('height', innerH)
+            .attr('fill', '#f0f9ff').attr('opacity', 0.3);
+        svg.append('rect').attr('x', baselineX).attr('y', 0).attr('width', innerW - baselineX).attr('height', innerH)
+            .attr('fill', '#fef2f2').attr('opacity', 0.3);
+
+        svg.append('line').attr('x1', baselineX).attr('x2', baselineX).attr('y1', 0).attr('y2', innerH)
+            .attr('stroke', '#94a3b8').attr('stroke-width', 1.5).attr('stroke-dasharray', '6,3');
+        svg.append('text').attr('x', baselineX).attr('y', -8).attr('text-anchor', 'middle')
+            .style('font-size', '10px').style('fill', '#64748b').style('font-weight', '600').text('船队基准 (1.0×)');
+
+        behaviorData.forEach(d => {
+            const y = yScale(d.label) + yScale.bandwidth() / 2;
+            const barWidth = xScale(d.ratio) - baselineX;
+            const barX = baselineX;
+
+            svg.append('rect')
+                .attr('x', barX).attr('y', y - 8)
+                .attr('width', Math.max(barWidth, 0))
+                .attr('height', 16)
+                .attr('fill', d.isAnomaly ? '#ef4444' : '#f87171')
+                .attr('opacity', 0.85)
+                .attr('rx', 4);
+
+            svg.append('text')
+                .attr('x', barX + Math.max(barWidth, 0) + 6).attr('y', y + 4)
+                .style('font-size', '13px').style('fill', '#dc2626').style('font-weight', '700')
+                .text(`${d.ratio.toFixed(1)}×`);
+
+            svg.append('title')
+                .text(`${d.desc}\nSS: ${d.key.includes('ratio') ? (d.ss*100).toFixed(1)+'%' : d.ss.toFixed(2)} | 船队: ${d.key.includes('ratio') ? (d.fleet*100).toFixed(1)+'%' : d.fleet.toFixed(2)}`);
+        });
+
+        svg.append('g').call(d3.axisLeft(yScale))
+            .selectAll('text')
+            .style('font-size', '12px')
+            .style('font-weight', '600')
+            .style('text-anchor', 'end')
+            .attr('dx', '-0.5em')
+            .attr('dy', '0.2em');
+
+        svg.append('g').attr('transform', `translate(0,${innerH})`)
+            .call(d3.axisBottom(xScale).ticks(6).tickFormat(d => d.toFixed(1) + '×'))
+            .selectAll('text').style('font-size', '10px');
+
+        svg.append('text').attr('x', innerW/2).attr('y', innerH + 22)
+            .attr('text-anchor', 'middle').style('font-size', '11px').style('fill', '#64748b')
+            .text('异常倍数（SS / 船队平均）');
+
+        const legend = svg.append('g').attr('transform', `translate(${innerW + 10}, 0)`);
+        legend.append('rect').attr('width', 14).attr('height', 14).attr('fill', '#ef4444').attr('rx', 3);
+        legend.append('text').attr('x', 20).attr('y', 11).style('font-size', '11px').style('fill', '#475569').text('SouthSeafood');
+        legend.append('line').attr('x1', 0).attr('x2', 14).attr('y1', 30).attr('y2', 30)
+            .attr('stroke', '#94a3b8').attr('stroke-width', 1.5).attr('stroke-dasharray', '6,3');
+        legend.append('text').attr('x', 20).attr('y', 34).style('font-size', '11px').style('fill', '#475569').text('船队基准');
+        legend.append('text').attr('x', 0).attr('y', 54)
+            .style('font-size', '9px').style('fill', '#94a3b8')
+            .text('条形越长 = 异常越严重');
+    }
+
+    // ============================================================
+    // 图表3: 移动模式指纹差异矩阵
+    // ============================================================
+    function drawFingerprintDiff(data) {
+        const container = document.getElementById('chart-fingerprint');
+        const { width, height } = getResponsiveSize(container);
+        const margin = { top: 40, right: 20, bottom: 72, left: 90 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+
+        const transitions = ['P->P', 'P->F', 'P->C', 'P->O', 'F->P', 'F->F', 'F->C', 'F->O', 'C->P', 'C->F', 'C->C', 'C->O', 'O->P', 'O->F', 'O->C', 'O->O'];
+        const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.id));
+
+        // 计算转换矩阵
+        const ssTrans = {};
+        const otherTrans = {};
+        transitions.forEach(t => { ssTrans[t] = 0; otherTrans[t] = 0; });
+
+        data.vessels.forEach(v => {
+            const vTrans = v.transitions || {};
+            const target = ssIds.has(v.vessel_id) ? ssTrans : otherTrans;
+            transitions.forEach(t => {
+                target[t] += vTrans[t] || 0;
+            });
+        });
+
+        // 归一化
+        const ssTotal = d3.sum(transitions, t => ssTrans[t]) || 1;
+        const otherTotal = d3.sum(transitions, t => otherTrans[t]) || 1;
+        transitions.forEach(t => {
+            ssTrans[t] = ssTrans[t] / ssTotal;
+            otherTrans[t] = otherTrans[t] / otherTotal;
+        });
+
+        // 计算差异（SS - 其他）
+        const diffTrans = {};
+        transitions.forEach(t => {
+            diffTrans[t] = ssTrans[t] - otherTrans[t];
+        });
+
+        const svg = d3.select(container).append('svg')
+            .attr('width', width).attr('height', height)
+            .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+        const xScale = d3.scaleBand().domain(transitions).range([0, innerW]).padding(0.1);
+        const yScale = d3.scaleBand().domain(['差异 (SS - 船队)']).range([0, innerH]).padding(0.3);
+        const maxAbsDiff = d3.max(transitions, t => Math.abs(diffTrans[t])) || 0.01;
+        const colorScale = d3.scaleDiverging(d3.interpolateRdBu).domain([-maxAbsDiff, 0, maxAbsDiff]);
+
+        // 绘制差异矩阵（只有一行）
+        transitions.forEach((t, i) => {
+            const diff = diffTrans[t];
+            svg.append('rect')
+                .attr('class', 'fingerprint-cell')
+                .attr('x', xScale(t))
+                .attr('y', yScale('差异 (SS - 船队)'))
+                .attr('width', xScale.bandwidth())
+                .attr('height', yScale.bandwidth())
+                .attr('fill', colorScale(diff))
+                .attr('rx', 2)
+                .attr('stroke', '#e2e8f0')
+                .attr('stroke-width', 0.5)
+                .append('title')
+                .text(`差异 (SS - 船队): ${t}\nSS: ${(ssTrans[t] * 100).toFixed(1)}%\n船队: ${(otherTrans[t] * 100).toFixed(1)}%\n差异: ${(diff * 100).toFixed(1)}%`);
+        });
+
+        // 在单元格上标注数值
+        transitions.forEach((t, i) => {
+            const diff = diffTrans[t];
+            const x = xScale(t) + xScale.bandwidth() / 2;
+            const y = yScale('差异 (SS - 船队)') + yScale.bandwidth() / 2;
+            const absDiff = Math.abs(diff);
+            if (absDiff > 0.005) {
+                svg.append('text')
+                    .attr('x', x).attr('y', y + 3)
+                    .attr('text-anchor', 'middle')
+                    .style('font-size', '8px')
+                    .style('font-weight', '600')
+                    .style('fill', diff > 0 ? '#dc2626' : '#2563eb')
+                    .style('opacity', 0.9)
+                    .text(`${(diff * 100).toFixed(1)}%`);
+            }
+        });
+
+        // 标签
+        svg.append('g').call(d3.axisLeft(yScale))
+            .selectAll('text')
+            .style('font-size', '11px')
+            .style('font-weight', '600')
+            .style('text-anchor', 'end')
+            .attr('dx', '-0.5em');
+        svg.append('g').attr('transform', `translate(0,${innerH})`)
+            .call(d3.axisBottom(xScale))
+            .selectAll('text').attr('transform', 'rotate(-45)').style('text-anchor', 'end').style('font-size', '8px');
+
+        svg.append('text').attr('x', innerW/2).attr('y', innerH + 50)
+            .attr('text-anchor', 'middle').style('font-size', '11px').style('fill', '#64748b')
+            .text('位置转换模式差异（P=保护区, F=渔场, C=城市, O=其他）');
+
+        // 图例
+        const legend = svg.append('g').attr('transform', `translate(${innerW - 160}, -25)`);
+        const legendGrad = legend.append('defs')
+            .append('linearGradient').attr('id', 'fingerprint-legend').attr('x1', '0%').attr('x2', '100%').attr('y1', '0%').attr('y2', '0%');
+        legendGrad.append('stop').attr('offset', '0%').attr('stop-color', '#2166ac');
+        legendGrad.append('stop').attr('offset', '50%').attr('stop-color', '#f7f7f7');
+        legendGrad.append('stop').attr('offset', '100%').attr('stop-color', '#b2182b');
+        legend.append('rect').attr('width', 100).attr('height', 10).attr('fill', 'url(#fingerprint-legend)').attr('rx', 2);
+        legend.append('text').attr('x', 0).attr('y', -3).style('font-size', '8px').style('fill', '#2166ac').text('船队偏高');
+        legend.append('text').attr('x', 100).attr('y', -3).attr('text-anchor', 'end').style('font-size', '8px').style('fill', '#b2182b').text('SS偏高');
+    }
+
+    // ============================================================
+    // 图表4: 夜间活动与地点交叉分析
+
+    // ============================================================
+    function drawNightActivityByLocation(data) {
+        const container = document.getElementById('chart-night');
+        const { width, height } = getResponsiveSize(container);
+        const margin = { top: 30, right: 120, bottom: 40, left: 130 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+
+        const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.id));
+
+        // 获取每艘船的夜间捕鱼率
+        const ssNight = [];
+        const otherNight = [];
+
+        data.vessels.forEach(v => {
+            if (ssIds.has(v.vessel_id)) {
+                ssNight.push({
+                    name: v.vessel_name,
+                    night: v.night_fishing_ratio || 0,
+                    day: 1 - (v.night_fishing_ratio || 0),
+                    nightOverall: v.night_ratio || 0,
+                    dwell: v.avg_dwell_hours || 0
+                });
+            } else {
+                otherNight.push(v.night_fishing_ratio || 0);
+            }
+        });
+
+        const fleetAvg = d3.mean(otherNight) || 0;
+
+        const svg = d3.select(container).append('svg')
+            .attr('width', width).attr('height', height)
+            .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+        const xScale = d3.scaleLinear().domain([0, 1]).range([0, innerW]);
+        const yScale = d3.scaleBand()
+            .domain([...ssNight.map(d => d.name), '船队平均'])
+            .range([0, innerH]).padding(0.3);
+
+        svg.append('g').attr('class', 'grid')
+            .call(d3.axisTop(xScale).tickSize(-innerH).tickFormat(d => (d * 100).toFixed(0) + '%'));
+
+        // SS 船舶
+        ssNight.forEach(v => {
+            const y = yScale(v.name);
+            // 夜间部分
+            svg.append('rect')
+                .attr('x', 0).attr('y', y)
+                .attr('width', xScale(v.night))
+                .attr('height', yScale.bandwidth())
+                .attr('fill', '#1e293b')
+                .attr('rx', 3);
+            // 白天部分
+            svg.append('rect')
+                .attr('x', xScale(v.night)).attr('y', y)
+                .attr('width', xScale(v.day))
+                .attr('height', yScale.bandwidth())
+                .attr('fill', '#fbbf24')
+                .attr('rx', 3);
+            // 标签
+            svg.append('text')
+                .attr('x', xScale(v.night) + 5).attr('y', y + yScale.bandwidth() / 2 + 4)
+                .style('font-size', '10px').style('fill', '#64748b')
+                .text(`${(v.night * 100).toFixed(0)}% 夜间捕鱼`);
+
+            // 添加详细信息
+            svg.append('title')
+                .text(`${v.name}\n夜间捕鱼率: ${(v.night * 100).toFixed(1)}%\n总体夜间率: ${(v.nightOverall * 100).toFixed(1)}%\n平均停留: ${v.dwell.toFixed(1)}h`);
+        });
+
+        // 船队平均
+        const yAvg = yScale('船队平均');
+        svg.append('rect')
+            .attr('x', 0).attr('y', yAvg)
+            .attr('width', xScale(fleetAvg))
+            .attr('height', yScale.bandwidth())
+            .attr('fill', '#1e293b').attr('opacity', 0.5).attr('rx', 3);
+        svg.append('rect')
+            .attr('x', xScale(fleetAvg)).attr('y', yAvg)
+            .attr('width', xScale(1 - fleetAvg))
+            .attr('height', yScale.bandwidth())
+            .attr('fill', '#fbbf24').attr('opacity', 0.5).attr('rx', 3);
+        svg.append('text')
+            .attr('x', xScale(fleetAvg) + 5).attr('y', yAvg + yScale.bandwidth() / 2 + 4)
+            .style('font-size', '10px').style('fill', '#64748b')
+            .text(`${(fleetAvg * 100).toFixed(0)}% 夜间捕鱼`);
+
+        svg.append('g').call(d3.axisLeft(yScale))
+            .selectAll('text')
+            .style('font-size', '11px')
+            .style('font-weight', '600')
+            .style('text-anchor', 'end')
+            .attr('dx', '-0.5em');
+
+        const legend = svg.append('g').attr('transform', `translate(${innerW + 10}, 0)`);
+        legend.append('rect').attr('width', 12).attr('height', 12).attr('fill', '#1e293b').attr('rx', 2);
+        legend.append('text').attr('x', 18).attr('y', 10).style('font-size', '10px').style('fill', '#64748b').text('夜间捕鱼');
+        legend.append('rect').attr('width', 12).attr('height', 12).attr('y', 18).attr('fill', '#fbbf24').attr('rx', 2);
+        legend.append('text').attr('x', 18).attr('y', 28).style('font-size', '10px').style('fill', '#64748b').text('白天捕鱼');
+    }
+
+    init();
+    </script>
+</body>
+</html>

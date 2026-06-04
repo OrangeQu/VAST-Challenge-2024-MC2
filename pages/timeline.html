@@ -1,0 +1,672 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间线视图 - 船舶-货物关联 | FishEye Analytics</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="../scripts/viz-utils.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #f1f5f9; }
+        .nav-bar {
+            background: #ffffff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0.75rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            margin-bottom: 2rem;
+            border-radius: 16px;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; color: #0f172a; font-weight: 600; }
+        .logo { width: 32px; height: 32px; background: linear-gradient(135deg, #1e4a6e, #2c5f8a); border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; }
+        .nav-links { display: flex; gap: 1.5rem; list-style: none; }
+        .nav-links a { text-decoration: none; color: #475569; font-weight: 500; }
+        .nav-links a:hover, .nav-links a.active { color: #2c5f8a; }
+        .container { max-width: 1600px; margin: 0 auto; padding: 0 2rem; }
+        h1 { font-size: 1.75rem; font-weight: 600; color: #0f172a; margin-top: 0.5rem; }
+        .subtitle { color: #64748b; margin-top: 0.25rem; font-size: 0.8rem; }
+
+        .chart-card {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+        .chart-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #eef2ff;
+            background: #ffffff;
+            position: sticky;
+            left: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .chart-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .chart-badge {
+            background: #eef2ff;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #2c5f8a;
+        }
+        .filters-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #f8fafc;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+            border: 1px solid #e2e8f0;
+        }
+        .filter-group label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #475569;
+        }
+        .filter-group select {
+            padding: 0.25rem 0.5rem;
+            border: none;
+            background: transparent;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #0f172a;
+            cursor: pointer;
+        }
+        .timeline-canvas { position: relative; min-width: 1000px; }
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            background: #f8fafc;
+            border-top: 1px solid #eef2ff;
+            font-size: 0.7rem;
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.5rem; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; }
+        .legend-circle { width: 12px; height: 12px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+        .stats-bar {
+            display: flex;
+            gap: 2rem;
+            background: #ffffffcc;
+            padding: 1rem 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .stat-item { text-align: center; }
+        .stat-value { font-size: 1.5rem; font-weight: 700; color: #0f172a; }
+        .stat-label { font-size: 0.7rem; color: #64748b; }
+        .reset-btn { background: #f1f5f9; border: 1px solid #e2e8f0; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.7rem; cursor: pointer; }
+        .back-link { color: #2c5f8a; text-decoration: none; font-size: 0.875rem; }
+        .page-header { margin-bottom: 1.5rem; }
+        .timeline-chart-container {
+            background: #ffffff;
+            border-radius: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            overflow: hidden;
+        }
+        .footnote {
+            background: #f1f5f9;
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            margin-top: 0.5rem;
+            margin-bottom: 2rem;
+            font-size: 0.7rem;
+            color: #475569;
+            border-left: 3px solid #2c5f8a;
+        }
+        .footnote p { margin: 0.2rem 0; }
+        .footnote strong { color: #0f172a; }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="../index.html" class="nav-brand"><div class="logo">FE</div><span>FishEye Analytics</span></a>
+        <ul class="nav-links">
+            <li><a href="../index.html">首页</a></li>
+            <li><a href="timeline.html">时间线视图</a></li>
+            <li><a href="q1.html">Q1</a></li>
+            <li><a href="q2.html">Q2</a></li>
+            <li><a href="q3.html">Q3</a></li>
+            <li><a href="q4.html">Q4</a></li>
+            <li><a href="reflection.html">反思</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <a href="q1.html" class="back-link">← 返回 Q1 分析</a>
+            <h1>⏱️ 时间线视图：船舶-货物关联</h1>
+        </div>
+
+        <div class="stats-bar" id="stats-bar"></div>
+
+        <div class="timeline-chart-container" id="timeline-chart-container">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div class="chart-title">
+                    📊 时间线视图
+                    <span class="chart-badge">A 船舶停留 · B 港口报告 · C 交易数据</span>
+                </div>
+                <div class="filters-row">
+                    <div class="filter-group">
+                        <label>🚢 船舶</label>
+                        <select id="vessel-filter"><option value="all">全部</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>🐟 鱼种</label>
+                        <select id="fish-filter"><option value="all">全部</option></select>
+                    </div>
+                    <div class="filter-group">
+                        <label>⚓ 地点</label>
+                        <select id="port-filter">
+                            <option value="all">全部地点</option>
+                            <option value="Himark">⚓ Himark</option>
+                            <option value="Paackland">⚓ Paackland</option>
+                            <option value="Lomark">⚓ Lomark</option>
+                            <option value="South Paackland">⚓ South Paackland</option>
+                            <option value="Haacklee">⚓ Haacklee</option>
+                            <option disabled>──────────</option>
+                            <option value="Ghoti Preserve">🔴 Ghoti Preserve（保护区）</option>
+                            <option value="Wrasse Beds">🟠 Wrasse Beds（渔区）</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>📆 月份</label>
+                        <select id="month-select">
+                            <option value="all">全年</option>
+                            <option value="2">2月</option><option value="3">3月</option><option value="4">4月</option>
+                            <option value="5">5月</option><option value="6">6月</option><option value="7">7月</option>
+                            <option value="8">8月</option><option value="9">9月</option><option value="10">10月</option><option value="11">11月</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>🔍 范围</label>
+                        <select id="time-range">
+                            <option value="all">全部</option>
+                            <option value="anomaly">3-4月</option>
+                            <option value="peak">8-10月旺季</option>
+                        </select>
+                    </div>
+                    <button class="reset-btn" id="reset-filters">重置</button>
+                </div>
+            </div>
+            <div class="timeline-canvas" id="timeline-canvas"></div>
+            <!-- 精简后的图例（仅保留实际展示的元素） -->
+            <div class="legend">
+                <div class="legend-item"><div class="legend-color" style="background:#ef4444"></div><span>🔴 保护区（非法进入）</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#f59e0b"></div><span>🟠 渔区（可疑频繁停留）</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#3b82f6"></div><span>🔵 正常港口 / 船舶停留色块</span></div>
+                <div class="legend-item"><div class="legend-circle" style="background:#f59e0b"></div><span>🟡 港口报告（颜色=鱼种，半径=吨数）</span></div>
+                <div class="legend-item"><div class="legend-color" style="background:#8b5cf6"></div><span>🟣  交易趋势（紫色面积+折线，日均线虚线）</span></div>
+            </div>
+
+            <div class="footnote">
+                <p style="margin-bottom: 0.8rem;"><strong>📌 视图说明：</strong></p>
+                <ul style="list-style: none; padding-left: 0.5rem; color: #475569; line-height: 1.6;">
+                    <li><strong>⏱️ A（上层）：</strong> 船舶区域停留记录。支持查看多船停留时间跨度，或显示全港口的停留强度热力图。</li>
+                    <li><strong>📦 B（中层）：</strong> 港口卸货报告。气泡大小映射卸货吨位，颜色编码区分不同鱼种。</li>
+                    <li><strong>📈 C（下层）：</strong> 每日交易总量趋势。虚线为全周期平均水平，面积/折线图展示波动趋势。</li>
+                </ul>
+                
+                <p style="margin-top: 1rem; border-top: 1px solid #e2e8f0; padding-top: 0.8rem;">
+                    <strong>🔍 关键洞察：</strong><br>
+                    通过联动筛选船舶、鱼种与时间段，从而锁定非法转运链路。
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let deliveryData, movementData, allVessels = [], allFish = [], allPorts = [];
+        const DWELL_THRESHOLD = 3600;
+        const KNOWN_PORTS = ['Himark', 'Paackland', 'Lomark', 'South Paackland', 'Haacklee'];
+        const PROTECTED_ZONES = ['Ghoti Preserve', 'Don Limpet Preserve'];
+        const FISHING_ZONES = ['Wrasse Beds'];
+        const PORT_ALIAS_MAP = {
+            'Himark Bay': 'Himark',
+            'Himark Harbor': 'Himark',
+            'Himark Dock': 'Himark',
+            'Paackland Docks': 'Paackland',
+            'Paacklark': 'Paackland',
+            'Paacklark Dock': 'Paackland',
+            'South Paackland Dock': 'South Paackland',
+            'Wrasse Bed': 'Wrasse Beds',
+            'Wrasse Beds Dock': 'Wrasse Beds',
+            'Haacklee Dock': 'Haacklee',
+            'Haacklee Harbor': 'Haacklee'
+        };
+
+        const regionColors = {
+            'Ghoti Preserve': '#ef4444',
+            'Ghoti保护区': '#ef4444',
+            'Wrasse Beds': '#f59e0b',
+            '石斑鱼床': '#f59e0b',
+            'South Paackland': '#3b82f6',
+            'Paackland': '#3b82f6',
+            'Lomark': '#3b82f6',
+            'Himark': '#3b82f6',
+            'Haacklee': '#3b82f6'
+        };
+        const defaultColor = '#10b981';
+
+        function getRegionColor(location) {
+            if (!location) return defaultColor;
+            for (let [key, color] of Object.entries(regionColors)) {
+                if (location.includes(key)) return color;
+            }
+            return defaultColor;
+        }
+
+        function parseDate(str) {
+            if (!str) return null;
+            if (str instanceof Date) return str;
+            let s = str.split('.')[0];
+            if (!s.includes('T')) s = s + 'T00:00:00';
+            let d = new Date(s);
+            return isNaN(d.getTime()) ? null : d;
+        }
+
+        function formatYMD(d) { return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}` : ''; }
+        function localDateKey(d) { return formatYMD(d); }
+        function formatDateTime(d) {
+            if (!d) return '';
+            const pad = n => String(n).padStart(2, '0');
+            return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+        }
+        function cleanPortName(name) {
+            if (!name) return '未知区域';
+            let cleaned = name.replace('City of ', '').trim();
+            if (PORT_ALIAS_MAP[cleaned]) cleaned = PORT_ALIAS_MAP[cleaned];
+            if (KNOWN_PORTS.includes(cleaned)) return cleaned;
+            return cleaned;
+        }
+        function transformMovementData(raw) {
+            if (!raw) return { stays: [] };
+            if (raw.stays) return raw;
+
+            const stays = [];
+            const vesselEntries = Array.isArray(raw.vessels) ? raw.vessels : (Array.isArray(raw) ? raw : []);
+
+            vesselEntries.forEach(v => {
+                const vesselName = v.vessel_name || v.name || v.vessel || v.vessel_id || '未知船舶';
+                const movements = Array.isArray(v.movements) ? v.movements : [];
+
+                movements.forEach(m => {
+                    const dwellSeconds = Number(m.dwell ?? m.duration_seconds ?? 0);
+                    if (!dwellSeconds || dwellSeconds < DWELL_THRESHOLD) return;
+
+                    const startDate = parseDate(m.time || m.start || m.start_time);
+                    if (!startDate) return;
+
+                    const endDate = new Date(startDate.getTime() + dwellSeconds * 1000);
+                    const portRaw = m.location_name || m.location_id || m.region || '未知区域';
+
+                    stays.push({
+                        vessel: vesselName,
+                        port: cleanPortName(portRaw),
+                        start: formatDateTime(startDate),
+                        end: formatDateTime(endDate),
+                        duration_seconds: dwellSeconds
+                    });
+                });
+            });
+
+            return { stays };
+        }
+
+        async function init() {
+            try {
+                deliveryData = await loadProcessedData();
+                let resp = await fetch('../data/vessel_movements_processed_v1.json');
+                movementData = transformMovementData(await resp.json());
+                console.log('停留段:', movementData.stays?.length);
+
+                let reports = deliveryData.delivery_vessel_links || [];
+                
+                let allShipsFromAIS = new Set();
+                movementData.stays?.forEach(s => {
+                    if (s.vessel && s.vessel !== '未知船舶') {
+                        allShipsFromAIS.add(s.vessel);
+                    }
+                });
+                
+                let matchedVessels = new Set();
+                reports.forEach(r => {
+                    if (r.best_match_vessel?.vessel_name) {
+                        matchedVessels.add(r.best_match_vessel.vessel_name);
+                    }
+                });
+                
+                allVessels = [...new Set([...allShipsFromAIS, ...matchedVessels])].sort((a,b) => a.localeCompare(b, 'zh-CN'));
+                allFish = [...new Set(reports.map(r=>r.fish_name).filter(f=>f))].sort();
+
+                buildFilters();
+                updateStats();
+                draw();
+            } catch(e) { 
+                console.error(e); 
+                document.getElementById('timeline-canvas').innerHTML = '<div style="padding:2rem;text-align:center">数据加载失败</div>';
+            }
+        }
+
+        function buildFilters() {
+            const vesselSelect = document.getElementById('vessel-filter');
+            vesselSelect.innerHTML = `<option value="all">全部船舶 (${allVessels.length})</option>` + 
+                allVessels.map(v => `<option value="${v}">${v}</option>`).join('');
+            
+            document.getElementById('fish-filter').innerHTML = `<option value="all">全部鱼种 (${allFish.length})</option>${allFish.map(f=>`<option value="${f}">${f}</option>`).join('')}`;
+
+            const allowedPorts = ['Himark', 'Paackland', 'Lomark', 'South Paackland', 'Haacklee', 'Ghoti Preserve', 'Wrasse Beds', 'Don Limpet Preserve'];
+            const portLabels = {
+                'Himark': '⚓ Himark',
+                'Paackland': '⚓ Paackland',
+                'Lomark': '⚓ Lomark',
+                'South Paackland': '⚓ South Paackland',
+                'Haacklee': '⚓ Haacklee',
+                'Ghoti Preserve': '🔴 Ghoti Preserve（保护区）',
+                'Wrasse Beds': '🟠 Wrasse Beds（渔区）',
+                'Don Limpet Preserve': '🔴 Don Limpet Preserve（保护区）'
+            };
+            document.getElementById('port-filter').innerHTML = `<option value="all">全部地点</option>${allowedPorts.filter(p => {
+                const hasData = (movementData?.stays || []).some(s => cleanPortName(s.port) === p) || (deliveryData?.delivery_vessel_links || []).some(r => cleanPortName(r.location?.replace('City of ','')||r.location) === p);
+                return hasData;
+            }).map(p=>`<option value="${p}">${portLabels[p] || p}</option>`).join('')}`;
+
+            ['vessel-filter','fish-filter','port-filter','month-select','time-range'].forEach(id => {
+                document.getElementById(id).addEventListener('change', () => draw());
+            });
+            document.getElementById('reset-filters').onclick = () => {
+                document.getElementById('vessel-filter').selectedIndex = 0;
+                document.getElementById('fish-filter').value = 'all';
+                document.getElementById('port-filter').value = 'all';
+                document.getElementById('month-select').value = 'all';
+                document.getElementById('time-range').value = 'all';
+                draw();
+            };
+        }
+
+        function updateStats() {
+            let reports = deliveryData.delivery_vessel_links || [];
+            document.getElementById('stats-bar').innerHTML = '';
+        }
+
+        function getDateRange() {
+            let tr = document.getElementById('time-range')?.value || 'all';
+            let month = document.getElementById('month-select')?.value || 'all';
+            if (tr === 'anomaly') return { start: new Date(2035,2,1), end: new Date(2035,3,30) };
+            if (tr === 'peak') return { start: new Date(2035,7,1), end: new Date(2035,9,31) };
+            if (month !== 'all') {
+                let m = parseInt(month, 10);
+                let startDate = new Date(2035, m - 1, 1);
+                let endDate = new Date(2035, m, 0);
+                return { start: startDate, end: endDate };
+            }
+            return { start: new Date(2035,1,1), end: new Date(2035,10,30) };
+        }
+
+        function draw() {
+            let container = document.getElementById('timeline-canvas');
+            container.innerHTML = '';
+            if (!deliveryData || !movementData) return;
+
+            let vessel = document.getElementById('vessel-filter').value;
+            let fish = document.getElementById('fish-filter').value;
+            let port = document.getElementById('port-filter').value;
+            let { start, end } = getDateRange();
+
+            const fullDayTicks = d3.timeDay.range(
+                new Date(start.getFullYear(), start.getMonth(), start.getDate()),
+                new Date(end.getFullYear(), end.getMonth(), end.getDate() + 1)
+            );
+
+            let reports = deliveryData.delivery_vessel_links || [];
+            if (vessel !== 'all') reports = reports.filter(r => r.best_match_vessel?.vessel_name === vessel);
+            if (fish !== 'all') reports = reports.filter(r => r.fish_name === fish);
+            if (port !== 'all') reports = reports.filter(r => cleanPortName(r.location?.replace('City of ','')||r.location) === port);
+
+            let stays = (movementData.stays || []).filter(s => {
+                if (vessel !== 'all' && s.vessel !== vessel) return false;
+                if (port !== 'all' && cleanPortName(s.port) !== port) return false;
+                let st = parseDate(s.start), en = parseDate(s.end);
+                return st && en && st <= end && en >= start;
+            });
+
+            let portReports = reports.filter(r => {
+                let d = parseDate(r.date);
+                return d && d >= start && d <= end;
+            }).map(r => ({
+                date: parseDate(r.date),
+                port: cleanPortName(r.location?.replace('City of ','')||r.location),
+                fish: r.fish_name,
+                tons: r.qty_tons||0,
+                matched: !!r.best_match_vessel,
+                vessel: r.best_match_vessel?.vessel_name
+            }));
+
+            let dailyMap = new Map();
+            portReports.forEach(r => {
+                if (r.date) {
+                    let key = localDateKey(r.date);
+                    dailyMap.set(key, (dailyMap.get(key)||0) + r.tons);
+                }
+            });
+            let dailyTons = Array.from(dailyMap.entries())
+                .map(([d,t])=> ({ date: new Date(d), tons: t }))
+                .filter(d => d.date >= start && d.date <= end)
+                .sort((a,b)=>a.date-b.date);
+
+            let portDayMap = new Map();
+            stays.forEach(s => {
+                let st = parseDate(s.start);
+                if (!st) return;
+                let dateKey = st.toISOString().split('T')[0];
+                let portName = s.port;
+                let key = `${portName}|${dateKey}`;
+                if (!portDayMap.has(key)) {
+                    portDayMap.set(key, {
+                        port: portName,
+                        date: new Date(dateKey),
+                        vesselDurations: new Map()
+                    });
+                }
+                let group = portDayMap.get(key);
+                group.vesselDurations.set(
+                    s.vessel,
+                    (group.vesselDurations.get(s.vessel) || 0) + s.duration_seconds
+                );
+            });
+
+            let dailyPortStays = [];
+            portDayMap.forEach(group => {
+                if (port !== 'all' && cleanPortName(group.port) !== port) return;
+                let vesselDetails = Array.from(group.vesselDurations.entries())
+                    .map(([vessel, duration]) => ({ vessel, duration_seconds: duration }))
+                    .sort((a,b)=>b.duration_seconds - a.duration_seconds);
+                let totalDuration = d3.sum(vesselDetails, d => d.duration_seconds);
+                dailyPortStays.push({
+                    port: group.port,
+                    date: group.date,
+                    total_duration: totalDuration,
+                    vessels: vesselDetails,
+                    region_color: getRegionColor(group.port)
+                });
+            });
+
+            let rowH = { e1: 280, e3: 140, e5: 120 };
+            let totalH = rowH.e1 + rowH.e3 + rowH.e5;
+            let margin = { top: 45, right: 180, bottom: 60, left: 210 };
+            let width = 1600, innerW = width - margin.left - margin.right;
+
+            let xScale = d3.scaleLinear().domain([start.getTime(), end.getTime()]).range([0, innerW]);
+            let dayWidth = (end - start) / (1000 * 60 * 60 * 24);
+            let barWidth = Math.max(3, innerW / Math.max(1, dayWidth) * 0.8);
+
+            let svg = d3.select(container).append('svg').attr('width', width).attr('height', totalH + margin.top + margin.bottom + 40)
+                .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+
+            let mc = new Date(start); mc.setDate(1);
+            while (mc <= end) {
+                let x = xScale(mc.getTime());
+                if (x > 0 && x < innerW) {
+                    svg.append('line').attr('x1',x).attr('y1',0).attr('x2',x).attr('y2',totalH).attr('stroke','#cbd5e1').attr('stroke-dasharray','4,4').attr('stroke-width',0.5);
+                    svg.append('text').attr('x',x+3).attr('y',14).attr('font-size','9px').attr('fill','#64748b').text(mc.getMonth()+1+'月');
+                }
+                mc.setMonth(mc.getMonth()+1);
+            }
+
+            let y = 0;
+            
+            // e1: 船舶停留 (核心保留)
+            if (port !== 'all') {
+                let portIntervals = (movementData.stays || []).map(s => {
+                    if (cleanPortName(s.port) !== port) return null;
+                    let st = parseDate(s.start);
+                    let en = parseDate(s.end);
+                    if (!st || !en) return null;
+                    if (en < start || st > end) return null;
+                    let clippedStart = st < start ? new Date(start.getTime()) : st;
+                    let clippedEnd = en > end ? new Date(end.getTime()) : en;
+                    if (clippedEnd <= clippedStart) return null;
+                    return {
+                        vessel: s.vessel || '未知船舶',
+                        start: clippedStart,
+                        end: clippedEnd,
+                        rawStart: st,
+                        rawEnd: en,
+                        duration_seconds: (clippedEnd - clippedStart) / 1000,
+                        original_duration: (en - st) / 1000
+                    };
+                }).filter(Boolean);
+                if (portIntervals.length === 0) {
+                    container.innerHTML = '<div style="padding:2rem;text-align:center;color:#64748b">所选地点暂无停留记录</div>';
+                    return;
+                }
+                let vesselTotals = Array.from(d3.group(portIntervals, d => d.vessel), ([name, intervals]) => ({
+                    name,
+                    intervals: intervals.sort((a,b)=>a.start - b.start),
+                    total: d3.sum(intervals, d => d.duration_seconds)
+                })).sort((a,b)=>b.total - a.total);
+                const MAX_VESSELS = 12;
+                if (vesselTotals.length > MAX_VESSELS) vesselTotals = vesselTotals.slice(0, MAX_VESSELS);
+                let vlist = vesselTotals.map(v => v.name);
+                let vesselColors = d3.scaleOrdinal().domain(vlist).range(['#ef4444','#3b82f6','#22c55e','#facc15','#a855f7','#f97316','#6366f1','#0ea5e9','#10b981','#e11d48','#c084fc','#fb7185']);
+                let regionColor = getRegionColor(port);
+                svg.append('rect').attr('x',0).attr('y',y).attr('width',innerW).attr('height',rowH.e1).attr('fill','#f8fafc').attr('stroke','#e2e8f0').attr('stroke-width',0.5);
+                svg.append('text').attr('x', -12).attr('y', y + 18).attr('text-anchor','end').attr('font-size','11px').attr('font-weight','700').attr('fill', regionColor).text(` ${port === 'Ghoti Preserve' ? '🔴 保护区停留' : (port === 'Wrasse Beds' ? '🟠 渔区停留' : `📌 ${port}船舶停留`)}`);
+                let rowHeight = (rowH.e1 - 40) / Math.max(vlist.length, 1);
+                let barHeight = Math.max(10, rowHeight - 12);
+                vesselTotals.forEach((vObj, idx) => {
+                    let rowTop = y + 20 + idx * rowHeight + (rowHeight - barHeight) / 2;
+                    let color = vesselColors(vObj.name);
+                    vObj.intervals.forEach(interval => {
+                        let clipStart = Math.max(interval.start.getTime(), start.getTime());
+                        let clipEnd = Math.min(interval.end.getTime(), end.getTime());
+                        if (clipEnd <= clipStart) return;
+                        let x1 = Math.max(0, xScale(clipStart));
+                        let x2 = Math.min(innerW, xScale(clipEnd));
+                        if (x2 - x1 < 2) x2 = x1 + 2;
+                        let tooltip = `${vObj.name}\n停留: ${(interval.original_duration/3600).toFixed(1)} 小时`;
+                        svg.append('rect').attr('x', x1).attr('y', rowTop).attr('width', x2 - x1).attr('height', barHeight).attr('fill', color).attr('rx', 6).attr('opacity', 0.85).append('title').text(tooltip);
+                    });
+                });
+            } else {
+                if (dailyPortStays.length === 0) { container.innerHTML = '<div style="padding:2rem;text-align:center;color:#64748b">暂无停留记录</div>'; return; }
+                let portTotals = d3.rollup(dailyPortStays, arr => d3.sum(arr, d => d.total_duration), d => d.port);
+                let displayPorts = ['Himark', 'Paackland', 'Lomark', 'South Paackland', 'Haacklee', 'Ghoti Preserve', 'Wrasse Beds'];
+                let plist = displayPorts.filter(p => portTotals.has(p));
+                let maxPortDuration = Math.max(...dailyPortStays.map(d => d.total_duration), 1);
+                svg.append('rect').attr('x',0).attr('y',y).attr('width',innerW).attr('height',rowH.e1).attr('fill','#fafcff').attr('stroke','#e2e8f0').attr('stroke-width',0.5);
+                svg.append('text').attr('x',-50).attr('y',y+rowH.e1/2).attr('text-anchor','end').attr('font-size','12px').attr('font-weight','500').text('船舶停留');
+                let bh = (rowH.e1 - 35) / Math.max(plist.length, 1);
+                plist.forEach((portName, idx) => {
+                    let portStays = dailyPortStays.filter(s => s.port === portName).sort((a,b) => a.date - b.date);
+                    let barColor = portName === 'Ghoti Preserve' ? '#ef4444' : (portName === 'Wrasse Beds' ? '#f59e0b' : '#3b82f6');
+                    portStays.forEach(s => {
+                        let x = xScale(s.date.getTime());
+                        if(x >= -barWidth && x <= innerW + barWidth) {
+                            let x_left = Math.max(0, x - barWidth/2);
+                            let actualWidth = Math.min(barWidth, innerW - x_left);
+                            let barHeightVal = Math.max(4, (s.total_duration / maxPortDuration) * (bh - 12));
+                            let barY = y + 15 + idx * bh + (bh - 12 - barHeightVal);
+                            svg.append('rect').attr('x', x_left).attr('y', barY).attr('width', actualWidth).attr('height', barHeightVal).attr('fill', barColor).attr('rx', 3).attr('opacity', 0.85).append('title').text(`${s.port} | ${formatYMD(s.date)}\n总停留 ${Math.round(s.total_duration/3600)} 小时`);
+                        }
+                    });
+                    svg.append('text').attr('x', -10).attr('y', y + 22 + idx * bh + bh/2).attr('text-anchor', 'end').attr('font-size', '8px').attr('fill', barColor).text(portName === 'Ghoti Preserve' ? '🔴 Ghoti' : (portName === 'Wrasse Beds' ? '🟠 Wrasse' : portName.slice(0,8)));
+                });
+            }
+            y += rowH.e1;
+
+            // e3: 港口报告气泡图
+            svg.append('rect').attr('x',0).attr('y',y).attr('width',innerW).attr('height',rowH.e3).attr('fill','#fffbeb').attr('stroke','#e2e8f0');
+            svg.append('text').attr('x',-15).attr('y',y+rowH.e3/2).attr('text-anchor','end').attr('font-size','12px').attr('font-weight','700').text('港口报告');
+            let allFishTypes = [...new Set(portReports.map(r => r.fish).filter(f => f))];
+            let fishColorScale = d3.scaleOrdinal().domain(allFishTypes).range(['#f59e0b', '#ef4444', '#10b981', '#8b5cf6', '#ec489a', '#06b6d4', '#84cc16', '#f97316', '#6366f1', '#14b8a6']);
+            let reportsByDate = new Map();
+            portReports.forEach(r => { if (r.date) { let key = localDateKey(r.date); if (key >= localDateKey(start) && key <= localDateKey(end)) { if (!reportsByDate.has(key)) reportsByDate.set(key, []); reportsByDate.get(key).push(r); } } });
+            for (let [dateKey, dayReports] of reportsByDate) {
+                let date = new Date(`${dateKey}T00:00:00`);
+                let x = xScale(date.getTime());
+                if (x < -30 || x > innerW + 30) continue;
+                let totalTons = d3.sum(dayReports, r => r.tons);
+                dayReports = dayReports.slice().sort((a,b) => a.tons - b.tons);
+                let radii = dayReports.map(r => Math.min(10, Math.max(3, Math.sqrt(r.tons) * 1.1)));
+                let totalHeight = d3.sum(radii, r => r * 2 + 2);
+                let startY = Math.max(y + 18, y + rowH.e3 - 10 - totalHeight);
+                dayReports.forEach((r, idx) => {
+                    let radius = radii[idx];
+                    let cy = startY + d3.sum(radii.slice(0, idx), rr => rr * 2 + 2) + radius;
+                    if (cy - radius < y + 18) cy = y + 18 + radius;
+                    if (cy + radius > y + rowH.e3 - 8) cy = y + rowH.e3 - 8 - radius;
+                    svg.append('circle').attr('cx', x).attr('cy', cy).attr('r', radius).attr('fill', fishColorScale(r.fish)).attr('stroke', '#fff').attr('stroke-width', 1.2).attr('opacity', 0.85).append('title').text(`${formatYMD(date)}\n鱼种: ${r.fish}\n吨位: ${r.tons.toFixed(1)} 吨`);
+                });
+            }
+            y += rowH.e3;
+
+            // e5: 交易趋势
+            svg.append('rect').attr('x',0).attr('y',y).attr('width',innerW).attr('height',rowH.e5).attr('fill','#faf5ff').attr('stroke','#e2e8f0');
+            svg.append('text').attr('x',-15).attr('y',y+rowH.e5/2).attr('text-anchor','end').attr('font-size','12px').attr('font-weight','700').text('交易数据（吨/日）');
+            if (dailyTons.length > 0) {
+                let maxTons = Math.max(...dailyTons.map(d => d.tons), 1);
+                let area = d3.area().x(d => xScale(d.date.getTime())).y0(y + rowH.e5 - 15).y1(d => y + rowH.e5 - 15 - (d.tons / maxTons) * (rowH.e5 - 25)).curve(d3.curveMonotoneX);
+                svg.append('path').datum(dailyTons).attr('d', area).attr('fill', '#a78bfa').attr('opacity', 0.4);
+                let line = d3.line().x(d => xScale(d.date.getTime())).y(d => y + rowH.e5 - 15 - (d.tons / maxTons) * (rowH.e5 - 25)).curve(d3.curveMonotoneX);
+                svg.append('path').datum(dailyTons).attr('d', line).attr('fill', 'none').attr('stroke', '#8b5cf6').attr('stroke-width', 2.5);
+                let avgTons = d3.mean(dailyTons.map(d => d.tons)) || 0;
+                let avgY = y + rowH.e5 - 15 - (avgTons / maxTons) * (rowH.e5 - 25);
+                svg.append('line').attr('x1', 0).attr('y1', avgY).attr('x2', innerW).attr('y2', avgY).attr('stroke', '#c084fc').attr('stroke-width', 1.2).attr('stroke-dasharray', '6,4');
+                svg.append('text').attr('x', innerW - 10).attr('y', avgY - 3).attr('text-anchor', 'end').attr('font-size', '7px').attr('fill', '#a855f7').text(`平均: ${Math.round(avgTons)}吨`);
+                dailyTons.forEach(d => { svg.append('circle').attr('cx', xScale(d.date.getTime())).attr('cy', y + rowH.e5 - 15 - (d.tons / maxTons) * (rowH.e5 - 25)).attr('r', 3.5).attr('fill', '#8b5cf6').attr('opacity', 0.7).append('title').text(`${formatDateTime(d.date)}\n成交总量: ${d.tons.toFixed(1)} 吨`); });
+            }
+            let axis = d3.axisBottom(xScale).tickValues(fullDayTicks.map(d => d.getTime())).tickFormat(t => { let d = new Date(t); return `${d.getMonth()+1}/${String(d.getDate()).padStart(2,'0')}`; });
+            svg.append('g').attr('transform', `translate(0,${totalH-5})`).call(axis).selectAll('text').attr('font-size', '9px').attr('transform', 'rotate(-35)').style('text-anchor', 'end');
+        }
+        window.addEventListener('resize', () => setTimeout(draw, 150));
+        init();
+    </script>
+</body>
+</html>

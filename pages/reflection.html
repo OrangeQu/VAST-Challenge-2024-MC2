@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>反思 | FishEye Analytics</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <style>
+        .reflection-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 2rem;
+            margin-bottom: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+        .reflection-card h2 {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .reflection-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 0.9rem;
+        }
+        .reflection-card ul {
+            color: var(--text-secondary);
+            line-height: 1.8;
+            font-size: 0.9rem;
+            padding-left: 1.5rem;
+        }
+        .reflection-card ul li {
+            margin-bottom: 0.5rem;
+        }
+        .reflection-card strong {
+            color: var(--text-primary);
+        }
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(14, 165, 233, 0.05), rgba(99, 102, 241, 0.05));
+            border: 1px solid rgba(14, 165, 233, 0.15);
+            border-radius: var(--radius-sm);
+            padding: 1.25rem;
+            margin: 1rem 0;
+        }
+        .highlight-box h4 {
+            color: var(--accent-blue);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .highlight-box p {
+            font-size: 0.85rem;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="../index.html" class="nav-brand">
+            <div class="logo">FE</div>
+            <span>FishEye Analytics</span>
+        </a>
+      <ul class="nav-links">
+            <li><a href="../index.html">首页</a></li>
+            <li><a href="timeline.html">时间线视图</a></li>
+            <li><a href="q1.html">Q1</a></li>
+            <li><a href="q2.html">Q2</a></li>
+            <li><a href="q3.html">Q3</a></li>
+            <li><a href="q4.html">Q4</a></li>
+            <li><a href="reflection.html">反思</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <a href="../index.html" class="back-link">← 返回总览</a>
+                <h1>反思问题</h1>
+                <p class="subtitle">关于数据选择、可视化方法、挑战经历和数据处理的思考</p>
+            </div>
+
+            <!-- 问题1: 数据版本选择 -->
+            <div class="reflection-card">
+                <h2>📦 1. 你选择了哪个版本的数据？为什么？你下载了多个版本并在挑战中比较了吗？</h2>
+                <p>我们选择了 <strong>MC2 提供的完整 JSON 数据集</strong>（mc2.json），因为它包含了所有必要的信息：船舶应答器数据、港口出口记录、鱼类种类和位置信息。我们只下载了一个版本，因为数据描述文档明确指出这是最终版本，不需要比较多个版本。</p>
+                <p style="margin-top: 0.8rem;">选择这个版本的原因：</p>
+                <ul>
+                    <li><strong>完整性：</strong>JSON 文件包含 296 艘船舶的追踪数据、258K+ 移动信号和 5,307 条交付记录，为分析提供了丰富的数据基础。</li>
+                    <li><strong>结构化：</strong>数据以知识图谱格式组织，包含实体（船舶、位置、鱼类）和关系（交付、移动），便于进行关联分析。</li>
+                    <li><strong>一致性：</strong>所有数据来自同一来源（CatchNet），确保了数据格式和语义的一致性。</li>
+                </ul>
+                <div class="highlight-box">
+                    <h4>💡 设计思考</h4>
+                    <p>虽然只使用了一个版本，但我们通过数据预处理脚本对原始 JSON 进行了特征工程——计算行为指标（夜间比率、移动熵、保护区访问频率等），这些衍生特征是我们可视化分析的核心。</p>
+                </div>
+            </div>
+
+            <!-- 问题2: 可视化创新 -->
+            <div class="reflection-card">
+                <h2>🎨 2. 在任务中，要为知识图谱开发可视化，你觉得这个挑战是否促使你开发新的视觉表现技巧？</h2>
+                <p><strong>是的，这个挑战极大地推动了我们在可视化设计上的创新。</strong>传统的柱状图和折线图不足以揭示非法捕鱼行为的多维度特征。我们开发了以下几种新颖的可视化表现：</p>
+                <ul>
+                    <li><strong>行为特征雷达图：</strong>将船舶的 6 个行为指标（保护区访问、夜间活动、移动熵等）整合到一个雷达图中，实现 SouthSeafood 与船队平均的直观多维度对比。这种"行为指纹"方法比单独查看每个指标更有效。</li>
+                    <li><strong>移动模式指纹热力图：</strong>将位置转换（保护区→渔场、渔场→城市等）编码为热力图矩阵，使非法船舶独特的"之字形"移动模式一目了然。</li>
+                    <li><strong>t-SNE 行为空间投影：</strong>使用降维技术将高维行为特征投影到二维空间，使船舶聚类和异常值可视化。SouthSeafood 船舶在投影空间中形成独特聚类，为相似性检测提供了强有力的视觉证据。</li>
+                    <li><strong>桑基图 + 时间线叠加：</strong>将港口→鱼种→船舶的货物流向与时间线结合，揭示交付的时间模式和异常。</li>
+                </ul>
+                <div class="highlight-box">
+                    <h4>💡 创新亮点</h4>
+                    <p>我们的"行为指纹"概念——将多维度行为特征编码为独特的视觉模式——是本次挑战中最具创新性的贡献。这种方法不仅适用于 SouthSeafood 案例，还可以推广到其他类型的异常行为检测。</p>
+                </div>
+            </div>
+
+            <!-- 问题3: 去年参赛经历 -->
+            <div class="reflection-card">
+                <h2>🏆 3. 你参加过去年的挑战吗？如果有，你去年的经历如何帮助你为今年的挑战做准备？</h2>
+                <p>作为大三学生，这是我们团队第一次参加 VAST Challenge。虽然没有去年的直接经验，但我们从以下几个方面进行了准备：</p>
+                <ul>
+                    <li><strong>学习 VAST Challenge 往年作品：</strong>我们研究了往年获奖作品的可视化设计，特别是那些处理时空数据和知识图谱的作品，从中汲取了设计灵感。</li>
+                    <li><strong>D3.js 技能积累：</strong>我们花时间学习了 D3.js 的高级可视化技术，包括桑基图、弦图、雷达图和 t-SNE 散点图的实现，这些技术在本项目中得到了充分应用。</li>
+                    <li><strong>数据预处理经验：</strong>我们开发了 Python 数据预处理脚本，从原始 JSON 中提取特征、计算行为指标、生成相似度评分。这种"数据工程+可视化"的工作流是应对复杂数据分析挑战的关键。</li>
+                </ul>
+                <div class="highlight-box">
+                    <h4>💡 团队协作</h4>
+                    <p>作为四人团队，我们分工明确：两人负责数据预处理和特征工程，两人负责可视化设计和 D3.js 实现。这种分工使我们能够在有限时间内高效完成项目。</p>
+                </div>
+            </div>
+
+            <!-- 问题4: 数据处理难点 -->
+            <div class="reflection-card">
+                <h2>🔧 4. 今年数据工作中最难的部分是什么？又是什么让它更容易接触？</h2>
+                <p><strong>最难的部分：将港口出口记录与船舶关联起来。</strong>数据描述明确指出港口出口记录不包含具体的船舶信息——它们只记录了离开港口的货物（卡车/火车），而不是哪艘船交付了这些货物。这意味着我们需要开发一种<strong>概率关联方法</strong>，基于时间相关性（船舶在港口的时间与交付报告日期的匹配程度）来推断最可能的承运船舶。</p>
+                <p style="margin-top: 0.8rem;"><strong>让它更容易接触的因素：</strong></p>
+                <ul>
+                    <li><strong>数据预处理脚本：</strong>我们编写了 Python 脚本来自动化特征提取和关联计算。脚本将原始 JSON 转换为前端可直接使用的结构化数据，大大降低了前端可视化的复杂度。</li>
+                    <li><strong>可视化工具库（viz-utils.js）：</strong>我们创建了一个工具库，封装了数据加载、响应式尺寸计算等通用功能，使每个页面的可视化代码更加简洁和可维护。</li>
+                    <li><strong>D3.js 的灵活性：</strong>D3.js 提供了丰富的数据绑定和 SVG 操作能力，使我们能够实现自定义的可视化设计，而不受限于传统图表库的模板。</li>
+                </ul>
+                <div class="highlight-box">
+                    <h4>💡 关键教训</h4>
+                    <p>处理不完整数据（港口记录缺少船舶信息）是现实世界数据分析中的常见挑战。我们的概率关联方法——基于时间窗口匹配——是一种实用且可解释的解决方案，可以推广到其他类似的数据关联问题。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

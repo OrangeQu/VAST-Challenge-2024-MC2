@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q1 - 船舶-货物关联 | FishEye Analytics</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12.3/dist/d3-sankey.min.js"></script>
+    <script src="../scripts/viz-utils.js"></script>
+    <style>
+        .sankey-link { fill: none; opacity: 0.3; transition: opacity 0.15s ease, stroke 0.15s ease; }
+        .sankey-link:hover { opacity: 0.6; }
+        .sankey-link.dimmed { opacity: 0.06; }
+        .sankey-link.highlighted { opacity: 0.85; }
+        .sankey-node rect { cursor: pointer; transition: opacity 0.15s ease, filter 0.15s ease; }
+        .sankey-node rect:hover { opacity: 0.8; }
+        .sankey-node.dimmed rect { opacity: 0.18; }
+        .sankey-node.highlighted rect { opacity: 1; filter: drop-shadow(0 0 4px rgba(59,130,246,0.35)); }
+        .chord-path { cursor: pointer; transition: opacity 0.15s ease; }
+        .chord-arc { cursor: pointer; transition: opacity 0.15s ease; }
+        
+        .heatmap-controls {
+            padding: 12px 24px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            flex-wrap: nowrap;
+            gap: 12px;
+            overflow-x: auto;
+        }
+        .heatmap-controls > div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+            flex: 0 0 auto;
+        }
+        .heatmap-controls label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: #475569;
+            white-space: nowrap;
+        }
+        .heatmap-controls select, .heatmap-controls input {
+            padding: 5px 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.82rem;
+            background: white;
+            cursor: pointer;
+        }
+        .badge {
+            display: inline-block;
+            background: #e2e8f0;
+            color: #475569;
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: 12px;
+        }
+        .chord-controls {
+            padding: 12px 24px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .mode-switch {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .mode-btn {
+            padding: 6px 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: 20px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .mode-btn.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+        .mode-btn:hover:not(.active) {
+            background: #e2e8f0;
+        }
+        
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="../index.html" class="nav-brand">
+            <div class="logo">FE</div>
+            <span>FishEye Analytics</span>
+        </a>
+         <ul class="nav-links">
+            <li><a href="../index.html">首页</a></li>
+            <li><a href="timeline.html">时间线视图</a></li>
+            <li><a href="q1.html">Q1</a></li>
+            <li><a href="q2.html">Q2</a></li>
+            <li><a href="q3.html">Q3</a></li>
+            <li><a href="q4.html">Q4</a></li>
+            <li><a href="reflection.html">反思</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <a href="../index.html" class="back-link">← 返回总览</a>
+                <h1>Q1: 船舶-货物关联</h1>
+                <p class="subtitle">利用港口出口记录将船舶与其可能的货物交付关联起来。哪些船舶在何时交付了哪些产品？存在哪些季节性模式和异常？</p>
+            </div>
+
+            <!-- 分析摘要 -->
+            <div class="viz-card">
+                <div class="viz-title">📝 分析摘要</div>
+                <div class="viz-subtitle">Q1: 船舶-货物关联（含季节趋势 + 非法行为提示）</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; padding: 0.5rem 0;">
+                    <p>本研究基于 <strong>5,307 条港口出口记录（交付报告）</strong> 与船舶应答器（AIS）停留数据，开发了一套概率关联系统，将每笔货物交付与最可能的责任船舶进行匹配。通过该关联，我们识别出 <strong>South Paackland、Paackland 和 Lomark</strong> 为核心枢纽港口，而 <strong>Cod、Wrasse</strong> 为最主要的出货鱼种。</p>
+                    
+                    <p style="margin-top: 0.8rem;"><strong>📈 季节趋势：</strong> 从时间维度看，<strong>8–11 月</strong>出现明显的出货高峰，2–7 月相对低迷，反映出典型的季节性运输集中特征。</p>
+                    
+                    <p style="margin-top: 0.8rem;"><strong>🔗 流向集中性：</strong> 桑基图与弦图进一步显示，货物流向高度集中在少数港口-鱼种-船舶路径上，而非均匀分布。</p>
+                    
+                    <p style="margin-top: 0.8rem;"><strong>⚠️ 异常识别与非法行为提示：</strong> 部分月份存在有停留、无匹配货物的情况。船舶在港停留却无对应交付记录，结合区域 IUU 捕捞风险，可能暗示船舶在<strong>保护区内非法作业</strong>后<strong>规避正规报关</strong>卸货。</p>
+                    
+                    <p style="margin-top: 0.8rem;">此外，<strong>South Paackland 在 3–4 月</strong>出现与旺季不符的异常波动，伴随较高的“船-货不匹配”比例</p>
+                </div>
+            <!-- 统计 -->
+            <div class="stats-bar" id="stats-bar"></div>
+
+            <!-- 图表1: 货物流向桑基图 -->
+            <div class="viz-card">
+                <div class="viz-title">📊 货物流向：港口 → 鱼种 → 船舶</div>
+                <div class="viz-subtitle">桑基图展示鱼类产品从港口经鱼种到可能船舶的流向</div>
+                <div class="viz-content" id="chart-sankey"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>为识别最主要的港口节点，我们从总出货量、交互船舶数、交互鱼种数、总停靠次数四个维度进行综合评估，South Paackland、Paackland 和 Lomark 是最主要的港口节点，货物流向明显集中在少数枢纽港口。Cod和 Wrasse 是最核心的鱼种，说明主要出货并非均匀分布，而是集中在少数货类与港口组合上。后续应重点关注这些高流量路径是否存在异常。</p>
+                </div>
+            </div>
+
+            <!-- 图表2: 鱼种×月份热力图 -->
+            <div class="viz-card">
+                <div class="viz-title">
+                    🗺️ 鱼种 × 月份 出货分布热力图
+                    <span class="badge">2035年2月-11月</span>
+                </div>
+                <div class="viz-subtitle">
+                    按港口筛选，查看不同鱼种在各月份的出货量分布。颜色越深表示出货量越大。
+                </div>
+                
+                <div class="heatmap-controls">
+                    <div>
+                        <label>⚓ 筛选港口：</label>
+                        <select id="port-filter">
+                            <option value="__ALL__">🌊 全部港口</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <label>🐟 显示鱼种数：</label>
+                        <input type="range" id="fish-topn" min="3" max="10" step="1" value="10" style="width: 140px;">
+                        <input type="number" id="fish-topn-number" min="3" max="10" step="1" value="10" style="width: 60px; text-align: center;">
+                        <span id="fish-total-hint" style="font-size: 0.7rem; color: #64748b;">(共10种)</span>
+                    </div>
+                    <div>
+                        <label>🎨 色阶类型：</label>
+                        <select id="color-scale-type">
+                            <option value="log">对数色阶</option>
+                            <option value="linear">线性色阶</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="viz-content" id="chart-heatmap" style="min-height: 520px; overflow-x: auto;">
+                    <div class="loading">加载数据中...</div>
+                </div>
+                <div class="insights-box" id="heatmap-insights">
+                    <h4>💡 季节性模式与异常</h4>
+                    <p id="insights-text">正在分析数据...</p>
+                </div>
+            </div>
+
+            <!-- 图表3: 港口-鱼种弦图（带模式切换 + 悬停高亮） -->
+<div class="viz-card">
+    <div class="viz-title">🔄 港口-鱼种关系矩阵</div>
+    
+    <div class="chord-controls">
+        <div class="mode-switch">
+            <span style="font-size: 0.85rem; color: #475569;">显示模式：</span>
+            <button id="chord-mode-compact" class="mode-btn active">Top5</button>
+            <button id="chord-mode-full" class="mode-btn">全部</button>
+        </div>
+        <div style="margin-left: auto; font-size: 0.75rem; color: #64748b;">
+            💡 悬停弦或节点高亮关联关系，其他元素变暗
+        </div>
+    </div>
+    
+    <div class="viz-content" id="chart-chord" style="min-height: 820px; overflow: visible;">
+        <div class="loading">加载数据中...</div>
+    </div>
+    <div class="insights-box" id="chord-insights">
+        <h4>💡核心发现</h4>
+        <p id="chord-insights-text">弦图显示，货物流向主要集中在少数港口和少数鱼种上，Paackland、Himark 与 Lomark 的扇形和连线都更突出，说明它们是主要连接节点；而部分鱼种节点扇形较小、连线较少，参与度相对有限。整体结构说明流量分布存在明显集中现象，但仍需结合原始记录判断其是否只是规模差异，而非异常。</p>
+    </div>
+</div>
+            <!-- 图表4: 船舶停留 vs 货物匹配 -->
+            <div class="viz-card" id="anomaly-card">
+                <div class="viz-title" id="anomaly-title">🚢 船舶停留 vs 货物匹配</div>
+                <div class="viz-subtitle">红色柱 = 船舶停留次数，蓝色折线 = 有货物交付记录支持的停靠次数。两者差值越大，表示停靠与货物记录之间的差异越明显。</div>
+                <div class="controls" style="margin-bottom:.5rem; display: flex; gap: 16px; align-items: center;">
+                    <label>🔍 选择港口：</label>
+                    <select id="anomaly-port-select"></select>
+                    <span id="anomaly-summary" style="font-size: 0.8rem; color: #475569; font-weight: 500;"></span>
+                </div>
+                <div class="viz-content" id="chart-unmatched-anomaly"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p><strong>说明</strong>：该图用于对比港口在各月份的船舶停留次数与有货物交付记录支持的停靠次数。若两者接近，说明停靠与货物记录较为一致；若差值较大，则提示该时段可能存在记录缺口或统计偏差。</p>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============================================================
+    // 辅助函数
+    // ============================================================
+    function parseDate(dateStr) {
+        if (!dateStr) return null;
+        const d = new Date(dateStr);
+        if (isNaN(d.getTime())) return null;
+        return d;
+    }
+
+    function truncateName(name, maxLen = 14) {
+        if (!name) return '';
+        const slashIdx = name.indexOf('/');
+        if (slashIdx > 0 && slashIdx <= maxLen) {
+            return name.substring(0, slashIdx);
+        }
+        if (name.length <= maxLen) return name;
+        return name.substring(0, maxLen - 2) + '..';
+    }
+
+    function cleanPortName(name) {
+        if (!name) return '未知区域';
+        return name.replace('City of ', '').trim();
+    }
+
+    function transformMovementData(raw) {
+        if (!raw) return { stays: [] };
+        if (raw.stays) return raw;
+
+        const stays = [];
+        const vesselEntries = Array.isArray(raw.vessels) ? raw.vessels : (Array.isArray(raw) ? raw : []);
+        const dwellThreshold = 3600;
+
+        vesselEntries.forEach(v => {
+            const vesselName = v.vessel_name || v.name || v.vessel || v.vessel_id || '未知船舶';
+            const movements = Array.isArray(v.movements) ? v.movements : [];
+
+            movements.forEach(m => {
+                const dwellSeconds = Number(m.dwell ?? m.duration_seconds ?? 0);
+                if (!dwellSeconds || dwellSeconds < dwellThreshold) return;
+
+                const start = m.time || m.start || m.start_time;
+                if (!start) return;
+                const startDate = new Date(start);
+                if (isNaN(startDate.getTime())) return;
+
+                const endDate = new Date(startDate.getTime() + dwellSeconds * 1000);
+                const portRaw = m.location_name || m.location_id || m.region || '未知区域';
+
+                stays.push({
+                    vessel: vesselName,
+                    port: cleanPortName(portRaw),
+                    start: startDate.toISOString(),
+                    end: endDate.toISOString(),
+                    duration_seconds: dwellSeconds
+                });
+            });
+        });
+
+        return { stays };
+    }
+
+    // ============================================================
+    // 桑基图
+    // ============================================================
+    function drawSankey(data) {
+        const container = document.getElementById('chart-sankey');
+        d3.select(container).selectAll('*').remove();
+        if (!data || !Array.isArray(data.delivery_vessel_links) || data.delivery_vessel_links.length === 0) {
+            d3.select(container).append('div').attr('class','loading').text('暂无数据');
+            return;
+        }
+        const card = container.parentElement;
+        if (card && !card.querySelector('#sankey-controls')) {
+            const controls = document.createElement('div');
+            controls.className = 'controls';
+            controls.id = 'sankey-controls';
+            controls.style.marginBottom = '.5rem';
+            controls.innerHTML = `
+                <label style="margin-left:1rem;">鱼种筛选：</label>
+                <select id="sankey-fish-topn" style="width:90px;"></select>
+                <label style="margin-left:1rem;">船舶TopN：</label>
+                <select id="sankey-vessel-topn" style="width:120px;"></select>
+                <label style="margin-left:1rem;">月份：</label>
+                <select id="sankey-month-start" style="width:70px;">${Array.from({length:10}, (_,i)=> i+2).map(m => `<option value="${m}">${m}月</option>`).join('')}</select>
+                <span>至</span>
+                <select id="sankey-month-end" style="width:70px;">${Array.from({length:10}, (_,i)=> i+2).map(m => `<option value="${m}">${m}月</option>`).join('')}</select>
+            `;
+            card.insertBefore(controls, container);
+            
+            const fishSelect = controls.querySelector('#sankey-fish-topn');
+            const vesselSelect = controls.querySelector('#sankey-vessel-topn');
+            const mStart = controls.querySelector('#sankey-month-start');
+            const mEnd = controls.querySelector('#sankey-month-end');
+
+            const allFishNames = [...new Set(data.delivery_vessel_links.map(d => d.fish_name))].sort((a,b) => a.localeCompare(b,'zh-CN'));
+            const vesselNames = [...new Set(data.delivery_vessel_links.map(d => d.best_match_vessel?.vessel_name).filter(Boolean))].sort((a,b) => a.localeCompare(b,'zh-CN'));
+            const vesselMaxTopN = Math.max(1, vesselNames.length);
+            const vesselDefaultTopN = Math.min(20, vesselMaxTopN);
+
+            fishSelect.innerHTML = `<option value="10" selected>Top10</option>`;
+            allFishNames.forEach((name, idx) => {
+                if (idx < 10) fishSelect.innerHTML += `<option value="${idx + 1}">Top${idx + 1}: ${name}</option>`;
+            });
+
+            vesselSelect.innerHTML = `<option value="${vesselDefaultTopN}" selected>Top${vesselDefaultTopN}</option>`;
+            vesselNames.forEach((name, idx) => {
+                vesselSelect.innerHTML += `<option value="${idx + 1}">Top${idx + 1}: ${name}</option>`;
+            });
+            mStart.value = '2'; mEnd.value = '11';
+            fishSelect.addEventListener('change', () => drawSankey(data));
+            vesselSelect.addEventListener('change', () => drawSankey(data));
+            mStart.addEventListener('change', () => drawSankey(data));
+            mEnd.addEventListener('change', () => drawSankey(data));
+        }
+        
+        const minTonsVal = Number(document.getElementById('sankey-min-tons')?.value || 0);
+        const fishTopN = Number(document.getElementById('sankey-fish-topn')?.value || 10);
+        const vesselTopNValue = Number(document.getElementById('sankey-vessel-topn')?.value || 20);
+        const mStart = Number(document.getElementById('sankey-month-start')?.value || 2);
+        const mEnd = Number(document.getElementById('sankey-month-end')?.value || 11);
+        
+        const { width, height } = getResponsiveSize(container);
+        const margin = { top: 24, right: 140, bottom: 28, left: 140 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+
+        const portFish = {};
+        const fishVessel = {};
+        const portSet = new Set();
+        const fishSet = new Set();
+        const vesselSet = new Set();
+        const linkedVessels = [...new Set(data.delivery_vessel_links.map(d => d.best_match_vessel?.vessel_name).filter(Boolean))];
+
+        const filtered = data.delivery_vessel_links.filter(d => {
+            const m = new Date(d.date + 'T00:00:00').getMonth() + 1;
+            return m >= mStart && m <= mEnd;
+        });
+
+        filtered.forEach(d => {
+            const port = d.location.replace('City of ', '');
+            const fish = d.fish_name;
+            portSet.add(port);
+            fishSet.add(fish);
+            if (!portFish[port]) portFish[port] = {};
+            if (!portFish[port][fish]) portFish[port][fish] = 0;
+            portFish[port][fish] += d.qty_tons || 0;
+            if (d.best_match_vessel) {
+                const vessel = d.best_match_vessel.vessel_name;
+                vesselSet.add(vessel);
+                if (!fishVessel[fish]) fishVessel[fish] = {};
+                if (!fishVessel[fish][vessel]) fishVessel[fish][vessel] = 0;
+                fishVessel[fish][vessel] += d.qty_tons || 0;
+            }
+        });
+
+        const fishTotalsForRank = new Map();
+        Object.entries(portFish).forEach(([p, m]) => {
+            Object.entries(m).forEach(([fish, v]) => {
+                fishTotalsForRank.set(fish, (fishTotalsForRank.get(fish) || 0) + v);
+            });
+        });
+        const vesselTotalsForRank = new Map();
+        Object.entries(fishVessel).forEach(([fish, m]) => {
+            Object.entries(m).forEach(([ves, v]) => {
+                vesselTotalsForRank.set(ves, (vesselTotalsForRank.get(ves) || 0) + v);
+            });
+        });
+
+        const ports = [...portSet];
+        const allFishes = [...fishSet];
+        const allVessels = [...vesselSet];
+        const fishes = allFishes.sort((a,b) => (fishTotalsForRank.get(b)||0) - (fishTotalsForRank.get(a)||0)).slice(0, Math.max(1, Math.min(10, fishTopN)));
+        const vessels = allVessels
+            .sort((a,b) => (vesselTotalsForRank.get(b)||0) - (vesselTotalsForRank.get(a)||0))
+            .slice(0, Math.max(1, Math.min(allVessels.length, vesselTopNValue)));
+
+        const nodeById = new Map();
+        function ensureNode(id, name, type){
+            if (!nodeById.has(id)) nodeById.set(id, { id, name, type });
+            return nodeById.get(id);
+        }
+        ports.forEach(p => ensureNode(`port:${p}`, truncateName(p, 12), 'port'));
+        fishes.forEach(f => ensureNode(`fish:${f}`, truncateName(f, 14), 'fish'));
+        vessels.forEach(v => ensureNode(`vessel:${v}`, truncateName(v, 12), 'vessel'));
+
+        const links = [];
+        ports.forEach(p => {
+            fishes.forEach(f => {
+                const val = portFish[p]?.[f] || 0;
+                if (val >= minTonsVal) links.push({ source: `port:${p}`, target: `fish:${f}`, value: val });
+            });
+        });
+        fishes.forEach(f => {
+            vessels.forEach(v => {
+                const val = fishVessel[f]?.[v] || 0;
+                if (val >= minTonsVal) links.push({ source: `fish:${f}`, target: `vessel:${v}`, value: val });
+            });
+        });
+
+        const showIsolated = document.getElementById('sankey-show-isolated')?.checked !== false;
+        const connectedIds = new Set();
+        links.forEach(l => { connectedIds.add(l.source); connectedIds.add(l.target); });
+        const nodes = Array.from(nodeById.values()).filter(n => showIsolated ? true : connectedIds.has(n.id));
+
+        if (links.length === 0) {
+            d3.select(container).append('div').attr('class','loading').text('筛选后无可展示流向');
+            return;
+        }
+
+        const svg = d3.select(container).append('svg').attr('width', width).attr('height', height)
+            .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+        const sankey = d3.sankey().nodeId(d => d.id).nodeAlign(d3.sankeyLeft).nodePadding(12).extent([[0, 0], [innerW, innerH]]);
+        const graph = sankey({ nodes: nodes.map(d => Object.assign({}, d)), links: links.map(d => Object.assign({}, d)) });
+        const maxVal = d3.max(graph.links, l => l.value) || 1;
+        
+        const link = svg.append('g').selectAll('path').data(graph.links).enter().append('path')
+            .attr('class', 'sankey-link')
+            .attr('d', d3.sankeyLinkHorizontal())
+            .attr('stroke', d => d3.interpolateBlues(0.3 + 0.7 * (d.value / maxVal)))
+            .attr('stroke-width', d => Math.max(0.4, d.width * 0.4))
+            .attr('fill', 'none')
+            .attr('opacity', 0.6);
+
+        link.append('title').text(d => `${d.source.name} → ${d.target.name}: ${d.value.toFixed(1)} 吨`);
+        
+        const nodeColors = { port: '#3b82f6', fish: '#10b981', vessel: '#f59e0b' };
+        const node = svg.append('g').selectAll('g').data(graph.nodes).enter().append('g').attr('class', 'sankey-node');
+        
+        node.append('rect')
+            .attr('x', d => d.x0).attr('y', d => d.y0)
+            .attr('height', d => Math.max(1, d.y1 - d.y0)).attr('width', d => Math.max(6, d.x1 - d.x0))
+            .attr('rx', 3).attr('fill', d => nodeColors[d.type] || '#94a3b8')
+            .append('title').text(d => `${d.name}`);
+        
+        node.append('text')
+            .attr('x', d => d.type === 'port' ? d.x0 - 6 : d.x1 + 6)
+            .attr('y', d => (d.y0 + d.y1) / 2)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', d => d.type === 'port' ? 'end' : 'start')
+            .style('font-size', '9px')
+            .style('fill', '#334155')
+            .text(d => d.name)
+            .append('title').text(d => d.id.split(':')[1]);
+
+        function setSankeyHighlight(nodeId) {
+            const connected = new Set([nodeId]);
+            graph.links.forEach(l => {
+                if (l.source.id === nodeId) connected.add(l.target.id);
+                if (l.target.id === nodeId) connected.add(l.source.id);
+            });
+            link.classed('highlighted', d => d.source.id === nodeId || d.target.id === nodeId)
+                .classed('dimmed', d => !(d.source.id === nodeId || d.target.id === nodeId));
+            node.classed('highlighted', d => connected.has(d.id))
+                .classed('dimmed', d => !connected.has(d.id));
+        }
+
+        function clearSankeyHighlight() {
+            link.classed('highlighted', false).classed('dimmed', false);
+            node.classed('highlighted', false).classed('dimmed', false);
+        }
+
+        node.on('mouseover', function(event, d) { setSankeyHighlight(d.id); })
+            .on('mouseout', clearSankeyHighlight);
+        link.on('mouseover', function(event, d) { setSankeyHighlight(d.source.id); })
+            .on('mouseout', clearSankeyHighlight);
+    }
+
+    // ============================================================
+    // 鱼种×月份热力图
+    // ============================================================
+    async function drawFishMonthHeatmap(data) {
+        const container = document.getElementById('chart-heatmap');
+        if (!container) return;
+        
+        const selectedPort = document.getElementById('port-filter')?.value || '__ALL__';
+        let fishTopN = parseInt(document.getElementById('fish-topn')?.value || '10');
+        const colorType = document.getElementById('color-scale-type')?.value || 'log';
+        
+        let deliveries = data.delivery_vessel_links || [];
+        if (!deliveries.length) {
+            container.innerHTML = '<div class="loading">暂无数据</div>';
+            return;
+        }
+        
+        let filtered = [...deliveries];
+        if (selectedPort !== '__ALL__') {
+            filtered = filtered.filter(d => d.location === selectedPort);
+        }
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="loading">该港口无出货记录</div>';
+            return;
+        }
+        
+        const fishTotalMap = new Map();
+        filtered.forEach(d => {
+            const fish = d.fish_name;
+            fishTotalMap.set(fish, (fishTotalMap.get(fish) || 0) + (d.qty_tons || 0));
+        });
+        let allFishes = [...fishTotalMap.entries()].sort((a,b) => b[1]-a[1]).map(([name]) => name);
+        const actualFishCount = allFishes.length;
+        
+        const fishRange = document.getElementById('fish-topn');
+        const fishNumber = document.getElementById('fish-topn-number');
+        const fishHint = document.getElementById('fish-total-hint');
+        if (fishRange && fishRange.max != actualFishCount) {
+            fishRange.max = actualFishCount;
+            fishNumber.max = actualFishCount;
+            if (fishTopN > actualFishCount) fishTopN = actualFishCount;
+            fishRange.value = fishTopN;
+            fishNumber.value = fishTopN;
+            if (fishHint) fishHint.innerText = `(共${actualFishCount}种)`;
+        }
+        
+        if (fishTopN > allFishes.length) fishTopN = allFishes.length;
+        const topFishes = allFishes.slice(0, fishTopN);
+        
+        const months = ['2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月'];
+        const fishMonthMatrix = {};
+        topFishes.forEach(fish => { fishMonthMatrix[fish] = new Array(10).fill(0); });
+        
+        filtered.forEach(d => {
+            const fish = d.fish_name;
+            if (!topFishes.includes(fish)) return;
+            const date = parseDate(d.date);
+            if (!date) return;
+            const monthNum = date.getMonth();
+            if (monthNum >= 1 && monthNum <= 10) {
+                const idx = monthNum - 1;
+                fishMonthMatrix[fish][idx] += d.qty_tons || 0;
+            }
+        });
+        
+        let firstHalfSum = 0, secondHalfSum = 0;
+        topFishes.forEach(fish => {
+            firstHalfSum += fishMonthMatrix[fish].slice(0,6).reduce((a,b)=>a+b,0);
+            secondHalfSum += fishMonthMatrix[fish].slice(6,10).reduce((a,b)=>a+b,0);
+        });
+        const portDisplay = selectedPort === '__ALL__' ? '全部港口' : selectedPort.replace('City of ', '');
+        let anomalyNote = "";
+        let anomalyDetail = "";
+        if (selectedPort === '__ALL__') {
+            anomalyNote = `<span style="color:#111827; font-weight:bold;">⚠️ 异常提示：整体上 8–11 月是出货高峰，而 2–7 月整体偏低，显示出明显的季节性集中。</span><br>`;
+            anomalyDetail = `货物流动并不是全年平均分布，而是在少数月份出现集中放大，说明存在明显的旺季结构。`;
+        } else if (selectedPort.includes('South Paackland')) {
+            anomalyNote = `<span style="color:#111827; font-weight:bold;">⚠️ 异常提示：切换到 South Paackland 后可以看到，3–4 月的出货强度与其余月份及全局旺季结构不一致，属于需要重点关注的异常波动。。</span><br>`;
+        }
+        document.getElementById('insights-text').innerHTML = `
+            <div style="display: flex; flex-wrap: wrap; gap: 16px;">
+                <div><strong> ${portDisplay}</strong><br>总出货：${d3.sum(filtered, d=>d.qty_tons||0).toFixed(0)} 吨</div>
+                <div><strong>旺季(8-11月)</strong><br>${secondHalfSum.toFixed(0)} 吨</div>
+                <div><strong>淡季(2-7月)</strong><br>${firstHalfSum.toFixed(0)} 吨</div>
+            </div>
+            <div style="margin-top: 8px; line-height: 1.7;">${anomalyNote}${anomalyDetail}💡 鼠标悬停查看具体数值</div>
+        `;
+        
+        container.innerHTML = '';
+        const { width, height } = getResponsiveSize(container);
+        const margin = { top: 20, right: 30, bottom: 70, left: 130 };
+        const innerW = Math.max(400, width - margin.left - margin.right);
+        const innerH = Math.max(350, height - margin.top - margin.bottom);
+        
+        const svg = d3.select(container).append('svg').attr('width', width).attr('height', height + 20)
+            .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+        
+        const xScale = d3.scaleBand().domain(months).range([0, innerW]).padding(0.08);
+        const yScale = d3.scaleBand().domain(topFishes).range([0, innerH]).padding(0.08);
+        
+        const allValues = [];
+        topFishes.forEach(fish => { fishMonthMatrix[fish].forEach(v => allValues.push(v)); });
+        const maxVal = d3.max(allValues) || 1;
+        const minPosVal = d3.min(allValues.filter(v => v > 0)) || 1;
+        
+        let colorScale;
+        if (colorType === 'log' && minPosVal > 0 && maxVal / minPosVal > 10) {
+            colorScale = d3.scaleSequentialLog().domain([minPosVal, maxVal]).interpolator(d3.interpolateOrRd);
+        } else {
+            colorScale = d3.scaleSequential().domain([0, maxVal]).interpolator(d3.interpolateOrRd);
+        }
+        
+        topFishes.forEach(fish => {
+            months.forEach((month, mi) => {
+                const val = fishMonthMatrix[fish][mi] || 0;
+                svg.append('rect')
+                    .attr('x', xScale(month)).attr('y', yScale(fish))
+                    .attr('width', xScale.bandwidth()).attr('height', yScale.bandwidth())
+                    .attr('fill', val > 0 ? colorScale(val) : '#f1f5f9').attr('rx', 4)
+                    .attr('stroke', '#fff').attr('stroke-width', 1.5)
+                    .append('title').text(`${fish} | ${month}: ${val.toFixed(1)} 吨`);
+                if (xScale.bandwidth() > 40 && val > maxVal * 0.1) {
+                    svg.append('text')
+                        .attr('x', xScale(month) + xScale.bandwidth() / 2)
+                        .attr('y', yScale(fish) + yScale.bandwidth() / 2)
+                        .attr('text-anchor', 'middle').attr('dominant-baseline', 'middle')
+                        .style('font-size', '9px').style('fill', val > maxVal * 0.55 ? '#fff' : '#1e293b')
+                        .text(val.toFixed(0));
+                }
+            });
+        });
+        
+        ['8月', '9月', '10月', '11月'].forEach(month => {
+            const x = xScale(month);
+            if (x !== undefined) {
+                svg.append('rect').attr('x', x).attr('y', 0).attr('width', xScale.bandwidth()).attr('height', innerH)
+                    .attr('fill', '#3b82f6').attr('opacity', 0.05).attr('pointer-events', 'none');
+            }
+        });
+        
+        svg.append('g').call(d3.axisLeft(yScale).tickSize(0).tickFormat(d => truncateName(d, 12)))
+            .selectAll('text').style('font-size', '9px').style('fill', '#334155').append('title').text(d => d);
+        svg.append('g').attr('transform', `translate(0, ${innerH})`).call(d3.axisBottom(xScale))
+            .selectAll('text').style('font-size', '10px');
+        svg.append('text').attr('x', innerW / 2).attr('y', innerH + 42)
+            .attr('text-anchor', 'middle').style('font-size', '11px').style('fill', '#64748b').text('月份 (2035年2月→11月)');
+        svg.append('text').attr('x', -innerH / 2).attr('y', -90)
+            .attr('text-anchor', 'middle').attr('transform', 'rotate(-90)')
+            .style('font-size', '11px').style('fill', '#64748b').text('鱼种');
+    }
+
+    // ============================================================
+    // 港口-鱼种弦图（支持精简/完整模式切换 + 悬停高亮）
+    // ============================================================
+    let currentChordMode = 'compact';
+    
+    function drawChord(data) {
+        const container = document.getElementById('chart-chord');
+        if (!container) return;
+        
+        const mode = currentChordMode;
+        
+        const allPortsRaw = [...new Set(data.delivery_vessel_links.map(d => d.location.replace('City of ', '')))];
+        const allFishesRaw = [...new Set(data.delivery_vessel_links.map(d => d.fish_name))];
+        
+        const portTotal = new Map();
+        const fishTotal = new Map();
+        data.delivery_vessel_links.forEach(d => {
+            const port = d.location.replace('City of ', '');
+            const fish = d.fish_name;
+            const tons = d.qty_tons || 0;
+            portTotal.set(port, (portTotal.get(port) || 0) + tons);
+            fishTotal.set(fish, (fishTotal.get(fish) || 0) + tons);
+        });
+        
+        let ports, fishes;
+        if (mode === 'compact') {
+            ports = allPortsRaw.sort((a,b) => (portTotal.get(b)||0) - (portTotal.get(a)||0)).slice(0, 5);
+            fishes = allFishesRaw.sort((a,b) => (fishTotal.get(b)||0) - (fishTotal.get(a)||0)).slice(0, 5);
+        } else {
+            ports = allPortsRaw;
+            fishes = allFishesRaw;
+        }
+        
+        const all = [...ports, ...fishes];
+        const n = all.length;
+        
+        const matrix = Array.from({ length: n }, () => new Array(n).fill(0));
+        data.delivery_vessel_links.forEach(d => {
+            const port = d.location.replace('City of ', '');
+            const fish = d.fish_name;
+            const pi = ports.indexOf(port);
+            const fi = ports.length + fishes.indexOf(fish);
+            if (pi >= 0 && fi >= ports.length) {
+                const tons = d.qty_tons || 0;
+                matrix[pi][fi] += tons;
+                matrix[fi][pi] += tons;
+            }
+        });
+        
+    const topPort = ports[0];
+    const topFish = fishes[0];
+
+    document.getElementById('chord-insights-text').innerHTML = `
+        <div style="margin-bottom: 12px;">弦图显示，货物流向主要集中在少数港口和少数鱼种上，
+        <strong>Paackland、Himark 与 Lomark</strong> 的扇形和连线都更突出，
+        说明它们是主要连接节点；而部分鱼种节点扇形较小、连线较少，参与度相对有限。
+        整体结构说明流量分布存在明显集中现象</div>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+            <span>📊 当前显示: ${mode === 'compact' ? `Top${ports.length}港口 × Top${fishes.length}鱼种` : `全部${ports.length}港口 × ${fishes.length}鱼种`}</span>
+            <span>💡 悬停弦或节点高亮关联关系</span>
+        </div>
+`;
+        
+        if (n < 2) {
+            container.innerHTML = '<div class="loading">数据不足以显示弦图</div>';
+            return;
+        }
+        
+        container.innerHTML = '';
+        const { width, height } = getResponsiveSize(container);
+        const svgWidth = Math.max(width, 1100);
+        const svgHeight = Math.max(height, 920);
+        const margin = { top: 40, right: 180, bottom: 40, left: 180 };
+        const innerWidth = svgWidth - margin.left - margin.right;
+        const innerHeight = svgHeight - margin.top - margin.bottom;
+        const outerRadius = Math.min(innerWidth, innerHeight) * 0.42;
+        const innerRadius = outerRadius - 32;
+        
+        const svg = d3.select(container).append('svg')
+            .attr('width', svgWidth)
+            .attr('height', svgHeight)
+            .append('g')
+            .attr('transform', `translate(${svgWidth/2},${svgHeight/2})`);
+        
+        try {
+            const chord = d3.chord()
+                .padAngle(0.05)
+                .sortSubgroups(d3.descending)(matrix);
+            
+            const color = d3.scaleOrdinal()
+                .domain(d3.range(n))
+                .range([...d3.schemeSet2.slice(0, ports.length), ...d3.schemeSet3.slice(0, fishes.length)]);
+            
+            const chords = svg.datum(chord).append('g')
+                .attr('class', 'chord-ribbons')
+                .selectAll('path')
+                .data(d => d)
+                .enter()
+                .append('path')
+                .attr('class', 'chord-path')
+                .attr('data-source', d => d.source.index)
+                .attr('data-target', d => d.target.index)
+                .attr('d', d3.ribbon().radius(innerRadius))
+                .style('fill', d => color(d.source.index))
+                .style('stroke', d => d3.rgb(color(d.source.index)).darker())
+                .style('stroke-width', 0.5)
+                .style('opacity', 0.7)
+                .append('title')
+                .text(d => {
+                    const sourceName = all[d.source.index];
+                    const targetName = all[d.target.index];
+                    return `${sourceName} → ${targetName}: ${d.source.value.toFixed(1)} 吨`;
+                });
+            
+            const arcs = svg.datum(chord).append('g')
+                .attr('class', 'chord-arcs')
+                .selectAll('g')
+                .data(d => d.groups)
+                .enter()
+                .append('g')
+                .attr('class', 'arc-group')
+                .attr('data-index', d => d.index);
+            
+            arcs.append('path')
+                .attr('class', 'chord-arc')
+                .attr('d', d3.arc().innerRadius(innerRadius).outerRadius(outerRadius))
+                .style('fill', d => color(d.index))
+                .style('stroke', d => d3.rgb(color(d.index)).darker())
+                .style('stroke-width', 1)
+                .append('title')
+                .text(d => `${all[d.index]}: ${d.value.toFixed(1)} 吨`);
+            
+            const labels = svg.datum(chord).append('g')
+                .attr('class', 'chord-labels')
+                .selectAll('g')
+                .data(d => d.groups)
+                .enter()
+                .append('g')
+                .attr('class', 'label-group')
+                .attr('data-index', d => d.index);
+            
+            labels.each(function(d) {
+                const angle = (d.startAngle + d.endAngle) / 2;
+                const labelRadius = outerRadius + 62;
+                const x = Math.sin(angle) * labelRadius;
+                const y = -Math.cos(angle) * labelRadius;
+                const isRightSide = Math.cos(angle) >= 0;
+                const textAnchor = isRightSide ? 'start' : 'end';
+                const dx = isRightSide ? 18 : -18;
+                const rotate = angle * 180 / Math.PI - 90;
+                const dy = (angle > Math.PI ? 6 : -6);
+                const labelName = all[d.index];
+                const maxLen = mode === 'compact' ? 12 : 10;
+                
+                d3.select(this).append('text')
+                    .attr('x', x + dx)
+                    .attr('y', y + dy)
+                    .attr('dy', '.35em')
+                    .attr('text-anchor', textAnchor)
+                    .attr('transform', `rotate(${rotate}, ${x + dx}, ${y + dy})`)
+                    .style('font-size', mode === 'compact' ? '10px' : '9px')
+                    .style('fill', '#334155')
+                    .style('font-weight', d.index < ports.length ? 'bold' : 'normal')
+                    .style('pointer-events', 'none')
+                    .text(truncateName(labelName, maxLen))
+                    .append('title')
+                    .text(labelName);
+            });
+            
+            // 交互高亮
+            const allChords = svg.selectAll('.chord-path');
+            const allArcs = svg.selectAll('.chord-arc');
+            const allLabels = svg.selectAll('.label-group text');
+            
+            function highlightChord(chordElement, chordData) {
+                const sourceIdx = chordData.source.index;
+                const targetIdx = chordData.target.index;
+                allChords.transition().duration(150).style('opacity', 0.12);
+                allArcs.transition().duration(150).style('opacity', 0.2);
+                allLabels.transition().duration(150).style('opacity', 0.2);
+                d3.select(chordElement).transition().duration(150).style('opacity', 0.95);
+                allArcs.each(function(arcD) {
+                    if (arcD.index === sourceIdx || arcD.index === targetIdx) {
+                        d3.select(this).transition().duration(150).style('opacity', 1);
+                    }
+                });
+                allLabels.each(function() {
+                    const parentGroup = d3.select(this.parentNode);
+                    const idx = parseInt(parentGroup.attr('data-index'));
+                    if (idx === sourceIdx || idx === targetIdx) {
+                        d3.select(this).transition().duration(150).style('opacity', 1);
+                    }
+                });
+            }
+            
+            function highlightNode(nodeIndex) {
+                allChords.transition().duration(150).style('opacity', 0.1);
+                allArcs.transition().duration(150).style('opacity', 0.15);
+                allLabels.transition().duration(150).style('opacity', 0.15);
+                allArcs.each(function(arcD) {
+                    if (arcD.index === nodeIndex) {
+                        d3.select(this).transition().duration(150).style('opacity', 1);
+                    }
+                });
+                allLabels.each(function() {
+                    const parentGroup = d3.select(this.parentNode);
+                    const idx = parseInt(parentGroup.attr('data-index'));
+                    if (idx === nodeIndex) {
+                        d3.select(this).transition().duration(150).style('opacity', 1);
+                    }
+                });
+                allChords.each(function(chordD) {
+                    if (chordD.source.index === nodeIndex || chordD.target.index === nodeIndex) {
+                        d3.select(this).transition().duration(150).style('opacity', 0.9);
+                    }
+                });
+            }
+            
+            function resetHighlight() {
+                allChords.transition().duration(200).style('opacity', 0.7);
+                allArcs.transition().duration(200).style('opacity', 1);
+                allLabels.transition().duration(200).style('opacity', 1);
+            }
+            
+            allChords.on('mouseover', function(event, d) { highlightChord(this, d); })
+                .on('mouseout', function() { resetHighlight(); });
+            allArcs.on('mouseover', function(event, d) { highlightNode(d.index); })
+                .on('mouseout', function() { resetHighlight(); });
+            allLabels.on('mouseover', function() {
+                const parentGroup = d3.select(this.parentNode);
+                const idx = parseInt(parentGroup.attr('data-index'));
+                if (!isNaN(idx)) highlightNode(idx);
+            }).on('mouseout', function() { resetHighlight(); });
+            
+        } catch (e) {
+            console.error('弦图绘制错误:', e);
+            container.innerHTML = '<div class="loading">弦图绘制失败，数据可能不完整</div>';
+        }
+    }
+
+    // ============================================================
+    // 新图表4: 船舶停留 vs 有货物交付记录支持的停靠次数
+    // 概念：红色柱 = 船舶停留次数，蓝色折线 = 有货物交付记录支持的停靠次数
+    // ============================================================
+    function drawVesselNoCargoAnomalyChart(data) {
+        const chartContainer = document.getElementById('chart-unmatched-anomaly');
+        if (!chartContainer) return;
+
+        const movementRaw = window.__movementData || data?.movementData || null;
+        const movementData = transformMovementData(movementRaw);
+        const stays = Array.isArray(movementData?.stays) ? movementData.stays : [];
+        
+        const selEl = document.getElementById('anomaly-port-select');
+        const selectedPort = selEl && selEl.value ? selEl.value : 'City of South Paackland';
+        const selectedPortClean = cleanPortName(selectedPort);
+        const titleEl = document.getElementById('anomaly-title');
+        if (titleEl) titleEl.textContent = `🚢 船舶停留 vs 货物交付记录支持的停靠次数`;
+        
+        const portDeliveries = (data.delivery_vessel_links || []).filter(d => cleanPortName(d.location) === selectedPortClean);
+        const portStays = stays.filter(s => cleanPortName(s.port) === selectedPortClean);
+        
+        const matchedStayIds = new Set();
+        portStays.forEach((stay, stayIdx) => {
+            const stayStart = parseDate(stay.start);
+            if (!stayStart) return;
+            const stayDay = stayStart.toISOString().slice(0, 10);
+            const stayPort = cleanPortName(stay.port);
+            const stayVessel = stay.vessel;
+
+            for (const delivery of portDeliveries) {
+                if (cleanPortName(delivery.location) !== stayPort) continue;
+                if (delivery.best_match_vessel?.vessel_name !== stayVessel) continue;
+                const deliveryDate = parseDate(delivery.date);
+                if (!deliveryDate) continue;
+                const diffDays = Math.abs((deliveryDate - stayStart) / (1000 * 60 * 60 * 24));
+                if (diffDays <= 3) {
+                    matchedStayIds.add(stayIdx);
+                    break;
+                }
+            }
+        });
+
+        const monthKeys = new Set();
+        portStays.forEach(s => {
+            const startDate = parseDate(s.start);
+            if (!startDate) return;
+            monthKeys.add(`${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`);
+        });
+        const months = Array.from(monthKeys).sort().filter(m => m.startsWith('2035'));
+
+        const vesselStopsData = months.map(month => {
+            return portStays.filter(s => {
+                const startDate = parseDate(s.start);
+                if (!startDate) return false;
+                const monthKey = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`;
+                return monthKey === month;
+            }).length;
+        });
+
+        const matchedDeliveriesData = months.map(month => {
+            return portStays.filter((s, idx) => {
+                const startDate = parseDate(s.start);
+                if (!startDate) return false;
+                const monthKey = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`;
+                return monthKey === month && matchedStayIds.has(idx);
+            }).length;
+        });
+
+        const gapData = months.map((m, i) => vesselStopsData[i] - matchedDeliveriesData[i]);
+        let maxGap = 0;
+        let anomalyMonthIdx = -1;
+        gapData.forEach((gap, idx) => {
+            if (gap > maxGap) {
+                maxGap = gap;
+                anomalyMonthIdx = idx;
+            }
+        });
+        
+        const summaryEl = document.getElementById('anomaly-summary');
+        if (summaryEl) {
+            const totalStops = d3.sum(vesselStopsData) || 0;
+            const totalMatched = d3.sum(matchedDeliveriesData) || 0;
+            summaryEl.innerHTML = `船舶停留 ${totalStops} 次，其中 ${totalMatched} 次有货物交付记录支持`;
+        }
+        
+        if (months.length === 0) {
+            d3.select(chartContainer).html('');
+            d3.select(chartContainer).append('div').attr('class', 'loading').text('该港口暂无停留或货物数据');
+            return;
+        }
+        
+        d3.select(chartContainer).selectAll('svg').remove();
+        const { width, height } = getResponsiveSize(chartContainer);
+        const margin = { top: 60, right: 90, bottom: 70, left: 80 };
+        const innerW = width - margin.left - margin.right;
+        const innerH = height - margin.top - margin.bottom;
+        
+        const svg = d3.select(chartContainer).append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+        
+        const xScale = d3.scaleBand().domain(months).range([0, innerW]).padding(0.25);
+        const yLeftScale = d3.scaleLinear().domain([0, d3.max(vesselStopsData) * 1.15 || 1]).range([innerH, 0]);
+        const yRightScale = d3.scaleLinear().domain([0, d3.max(matchedDeliveriesData) * 1.2 || 1]).range([innerH, 0]);
+
+        svg.append('g').call(d3.axisLeft(yLeftScale).ticks(6)).selectAll('text').style('font-size', '10px');
+        svg.append('text').attr('x', -45).attr('y', 15).attr('text-anchor', 'middle')
+            .attr('transform', 'rotate(-90)').style('font-size', '12px')
+            .style('fill', '#dc2626').style('font-weight', 'bold').text('🚢 船舶停留次数');
+        
+        svg.append('g').attr('transform', `translate(${innerW}, 0)`)
+            .call(d3.axisRight(yRightScale).ticks(5)).selectAll('text').style('font-size', '10px');
+        svg.append('text').attr('x', innerW + 45).attr('y', 15).attr('text-anchor', 'middle')
+            .attr('transform', 'rotate(90)').style('font-size', '12px')
+            .style('fill', '#3b82f6').style('font-weight', 'bold').text('📦 有货物交付记录支持的停靠次数');
+        
+        svg.selectAll('.vessel-bar').data(months).enter().append('rect')
+            .attr('x', d => xScale(d))
+            .attr('y', d => yLeftScale(vesselStopsData[months.indexOf(d)] || 0))
+            .attr('width', xScale.bandwidth())
+            .attr('height', d => innerH - yLeftScale(vesselStopsData[months.indexOf(d)] || 0))
+            .attr('fill', d => (vesselStopsData[months.indexOf(d)] - (matchedDeliveriesData[months.indexOf(d)] || 0) > 5 ? '#dc2626' : '#f97316'))
+            .attr('opacity', 0.8)
+            .attr('rx', 4)
+            .append('title')
+            .text(d => {
+                const i = months.indexOf(d);
+                const stops = vesselStopsData[i] || 0;
+                const deliveries = matchedDeliveriesData[i] || 0;
+                const gap = stops - deliveries;
+                return `${d}: 船舶停留 ${stops} 次 | 有货物交付记录支持的停靠 ${deliveries} 次 | 差值 ${gap} 次`;
+            });
+        
+
+        const line = d3.line().x((d, i) => xScale(months[i]) + xScale.bandwidth() / 2).y(d => yRightScale(d)).curve(d3.curveMonotoneX);
+        
+        svg.append('path')
+            .datum(matchedDeliveriesData)
+            .attr('fill', 'none')
+            .attr('stroke', '#3b82f6')
+            .attr('stroke-width', 3)
+            .attr('d', line);
+        
+        svg.selectAll('.delivery-dot').data(matchedDeliveriesData).enter().append('circle')
+            .attr('cx', (d, i) => xScale(months[i]) + xScale.bandwidth() / 2)
+            .attr('cy', d => yRightScale(d))
+            .attr('r', 7)
+            .attr('fill', '#3b82f6')
+            .attr('stroke', 'white')
+            .attr('stroke-width', 2)
+            .append('title')
+            .text((d, i) => `${months[i]}: ${d} 次有货物交付记录支持的停靠`);
+
+        
+        months.forEach((month, idx) => {
+            const gap = vesselStopsData[idx] - matchedDeliveriesData[idx];
+        });
+
+        svg.append('g').attr('transform', `translate(0,${innerH})`).call(d3.axisBottom(xScale))
+            .selectAll('text').style('font-size', '10px').attr('transform', 'rotate(-25)').style('text-anchor', 'end');
+
+        svg.append('text').attr('x', innerW / 2).attr('y', innerH + 48)
+            .attr('text-anchor', 'middle').style('font-size', '11px').style('fill', '#64748b').text('月份 (2035年)');
+
+        const legendX = innerW - 160;
+        const legendY = -25;
+        svg.append('rect').attr('x', legendX).attr('y', legendY).attr('width', 12).attr('height', 12).attr('fill', '#f97316').attr('rx', 2);
+        svg.append('text').attr('x', legendX + 16).attr('y', legendY + 10).style('font-size', '9px').style('fill', '#475569').text('船舶停留次数');
+        svg.append('line').attr('x1', legendX + 100).attr('y1', legendY + 6).attr('x2', legendX + 130).attr('y2', legendY + 6).attr('stroke', '#3b82f6').attr('stroke-width', 2.5);
+        svg.append('text').attr('x', legendX + 136).attr('y', legendY + 10).style('font-size', '9px').style('fill', '#475569').text('有货物交付记录支持的停靠');
+    }
+
+    // ============================================================
+    // 初始化
+    // ============================================================
+    async function init() {
+        const data = await loadProcessedData();
+        const { delivery_vessel_links, delivery_reports } = data;
+
+        try {
+            const movementResp = await fetch('../data/vessel_movements_processed_v1.json');
+            const movementJson = await movementResp.json();
+            window.__movementData = transformMovementData(movementJson);
+        } catch (err) {
+            console.warn('AIS 停留数据加载失败，将使用页面内联兼容逻辑：', err);
+            window.__movementData = { stays: [] };
+        }
+
+        const totalTons = d3.sum(delivery_reports, d => d.qty_tons || 0);
+        const uniqueFish = new Set(delivery_reports.map(d => d.fish_name)).size;
+        const uniquePorts = new Set(delivery_vessel_links.map(d => d.location)).size;
+        const linkedDeliveries = delivery_vessel_links.filter(d => d.best_match_vessel).length;
+        document.getElementById('stats-bar').innerHTML = `
+            <div class="stat-item"><div class="stat-value">${totalTons.toFixed(0)}</div><div class="stat-label">总吨数</div></div>
+            <div class="stat-item"><div class="stat-value">${uniqueFish}</div><div class="stat-label">鱼种数</div></div>
+            <div class="stat-item"><div class="stat-value">${uniquePorts}</div><div class="stat-label">港口数</div></div>
+            <div class="stat-item"><div class="stat-value">${linkedDeliveries}</div><div class="stat-label">已关联交付</div></div>
+        `;
+
+        drawSankey(data);
+        await drawFishMonthHeatmap(data);
+        drawChord(data);
+        
+        // 绑定热力图控件
+        const portFilter = document.getElementById('port-filter');
+        const fishRange = document.getElementById('fish-topn');
+        const fishNumber = document.getElementById('fish-topn-number');
+        const colorType = document.getElementById('color-scale-type');
+        const refreshHeatmap = () => drawFishMonthHeatmap(data);
+        
+        const ports = [...new Set(delivery_vessel_links.map(d => d.location))].sort();
+        if (portFilter) {
+            portFilter.innerHTML = `<option value="__ALL__">🌊 全部港口</option>` + 
+                ports.map(p => `<option value="${p}">${p.replace('City of ', '')}</option>`).join('');
+            portFilter.addEventListener('change', refreshHeatmap);
+        }
+        if (fishRange) fishRange.addEventListener('input', (e) => { fishNumber.value = e.target.value; refreshHeatmap(); });
+        if (fishNumber) fishNumber.addEventListener('input', (e) => { fishRange.value = e.target.value; refreshHeatmap(); });
+        if (colorType) colorType.addEventListener('change', refreshHeatmap);
+        
+        // 绑定弦图模式切换
+        const compactBtn = document.getElementById('chord-mode-compact');
+        const fullBtn = document.getElementById('chord-mode-full');
+        if (compactBtn && fullBtn) {
+            compactBtn.addEventListener('click', () => {
+                currentChordMode = 'compact';
+                compactBtn.classList.add('active');
+                fullBtn.classList.remove('active');
+                drawChord(data);
+            });
+            fullBtn.addEventListener('click', () => {
+                currentChordMode = 'full';
+                fullBtn.classList.add('active');
+                compactBtn.classList.remove('active');
+                drawChord(data);
+            });
+        }
+        
+        // 图表4：船舶停留 vs 有货物交付记录支持的停靠次数
+        const anomalyPortSel = document.getElementById('anomaly-port-select');
+        if (anomalyPortSel) {
+            anomalyPortSel.innerHTML = ports.map(p => `<option value="${p}">${p.replace('City of ','')}</option>`).join('');
+            const def = ports.includes('City of South Paackland') ? 'City of South Paackland' : ports[0];
+            anomalyPortSel.value = def;
+            anomalyPortSel.addEventListener('change', () => drawVesselNoCargoAnomalyChart(data));
+            drawVesselNoCargoAnomalyChart(data);
+        }
+        
+        // 窗口自适应
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(() => {
+                drawSankey(data);
+                drawFishMonthHeatmap(data);
+                drawChord(data);
+                drawVesselNoCargoAnomalyChart(data);
+            }, 200);
+        });
+    }
+
+    init();
+    </script>
+</body>
+</html>

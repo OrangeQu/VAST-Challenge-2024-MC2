@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FishEye Analytics | Oceanus 渔业分析</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <style>
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(14, 165, 233, 0.08);
+            border: 1px solid rgba(14, 165, 233, 0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            color: var(--accent-blue);
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+        .hero-badge span {
+            font-weight: 700;
+        }
+        .data-summary {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+        .summary-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.25rem;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: box-shadow 0.2s;
+        }
+        .summary-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+        .summary-card .icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .summary-card .num {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .summary-card .desc {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+            font-weight: 500;
+        }
+        @media (max-width: 768px) {
+            .data-summary {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* 确保卡片网格样式存在 */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        .card-number {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--accent-blue);
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .card h3 {
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-primary);
+        }
+        .card p {
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+        .tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+        .tag {
+            background: var(--bg-code);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: var(--accent-blue);
+        }
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1.25rem;
+            background: var(--gradient-primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateX(4px);
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="nav-bar">
+        <a href="index.html" class="nav-brand">
+            <div class="logo">FE</div>
+            <span>FishEye Analytics</span>
+        </a>
+        <ul class="nav-links">
+            <li><a href="index.html" class="active">首页</a></li>
+            <li><a href="pages/timeline.html">时间线视图</a></li>
+            <li><a href="pages/q1.html">Q1</a></li>
+            <li><a href="pages/q2.html">Q2</a></li>
+            <li><a href="pages/q3.html">Q3</a></li>
+            <li><a href="pages/q4.html">Q4</a></li>
+            <li><a href="pages/reflection.html">反思</a></li>
+        </ul>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <!-- Hero -->
+            <section class="hero">
+                <div class="hero-badge">
+                    <span>VAST Challenge 2024</span> · MC2: CatchNet Analysis
+                </div>
+                <h1>Oceanus 渔业<br>活动分析</h1>
+                <p>
+                    通过 CatchNet 知识图谱调查 <strong>SouthSeafood Express Corp</strong> 的非法捕鱼活动。
+                    运用可视化分析揭示行为特征，将船舶与货物关联，并在 Oceanus 海域检测可疑捕鱼模式。
+                </p>
+            </section>
+
+            <!-- Data Summary -->
+            <div class="data-summary">
+                <div class="summary-card">
+                    <div class="icon">🚢</div>
+                    <div class="num">296</div>
+                    <div class="desc">追踪船舶数</div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon">📍</div>
+                    <div class="num">258K</div>
+                    <div class="desc">移动信号数</div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon">📄</div>
+                    <div class="num">5,307</div>
+                    <div class="desc">交付记录数</div>
+                </div>
+                <div class="summary-card">
+                    <div class="icon">🐟</div>
+                    <div class="num">10</div>
+                    <div class="desc">鱼种数量</div>
+                </div>
+            </div>
+
+            <!-- Question Cards -->
+            <div class="cards-grid">
+                <!-- Q1: 船舶-货物关联 -->
+                <div class="card" data-q="1">
+                    <div class="card-number">问题 01</div>
+                    <h3>船舶-货物关联</h3>
+                    <p>利用港口出口记录将船舶与其可能的货物交付关联起来。哪些船舶在何时交付了哪些产品？港口记录中存在哪些季节性模式和异常？</p>
+                    <div class="tags">
+                        <span class="tag">货物匹配</span>
+                        <span class="tag">时间分析</span>
+                        <span class="tag">季节模式</span>
+                    </div>
+                    <a href="pages/q1.html" class="btn">探索 →</a>
+                </div>
+
+                <!-- Q2: 非法捕鱼特征 -->
+                <div class="card" data-q="2">
+                    <div class="card-number">问题 02</div>
+                    <h3>非法捕鱼特征</h3>
+                    <p>可视化 SouthSeafood Express Corp 非法捕鱼操作的行为特征。它们的移动模式和捕捞方式与其他渔船相比有何不同？</p>
+                    <div class="tags">
+                        <span class="tag">移动分析</span>
+                        <span class="tag">行为特征</span>
+                        <span class="tag">异常检测</span>
+                    </div>
+                    <a href="pages/q2.html" class="btn">探索 →</a>
+                </div>
+
+                <!-- Q3: 相似船舶检测 -->
+                <div class="card" data-q="3">
+                    <div class="card-number">问题 03</div>
+                    <h3>相似船舶检测</h3>
+                    <p>开发可视化分析工作流，发现其他从事与 SouthSeafood Express Corp 类似非法行为的船舶。提供行为相似性的视觉证据。</p>
+                    <div class="tags">
+                        <span class="tag">相似度分析</span>
+                        <span class="tag">模式匹配</span>
+                        <span class="tag">聚类检测</span>
+                    </div>
+                    <a href="pages/q3.html" class="btn">探索 →</a>
+                </div>
+
+                <!-- Q4: 曝光后变化 -->
+                <div class="card" data-q="4">
+                    <div class="card-number">问题 04</div>
+                    <h3>曝光后变化</h3>
+                    <p>SouthSeafood 被抓获后，渔业活动发生了哪些变化？商业捕鱼社区中哪些新行为最可疑，为什么？</p>
+                    <div class="tags">
+                        <span class="tag">行为变化</span>
+                        <span class="tag">时间偏移</span>
+                        <span class="tag">社区影响</span>
+                    </div>
+                    <a href="pages/q4.html" class="btn">探索 →</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Highlight active nav link based on current page
+        document.querySelectorAll('.nav-links a').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href === 'index.html' && (window.location.pathname === '/' || window.location.pathname.endsWith('index.html') || window.location.pathname.endsWith('/'))) {
+                link.classList.add('active');
+            } else if (window.location.pathname.endsWith(href) && href !== 'index.html') {
+                link.classList.add('active');
+            }
+        });
+        
+        // 控制台输出提示
+        console.log('FishEye Analytics 首页已加载');
+        console.log('提示: 请确保数据文件已生成 (运行 python scripts/preprocess_v3.py)');
+    </script>
+</body>
+</html>

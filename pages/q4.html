@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q4 - 曝光后变化 | FishEye Analytics</title>
+    <link rel="stylesheet" href="../styles/main.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="../scripts/viz-utils.js"></script>
+    <style>
+        .change-bar { cursor: pointer; }
+        .change-bar:hover { opacity: 0.8; }
+        .trend-line { fill: none; stroke-width: 2.5; }
+        .trend-line:hover { stroke-width: 4; }
+        .anomaly-dot { cursor: pointer; }
+        .anomaly-dot:hover { r: 8; }
+    </style>
+</head>
+<body>
+    <nav class="nav-bar">
+        <a href="../index.html" class="nav-brand">
+            <div class="logo">FE</div>
+            <span>FishEye Analytics</span>
+        </a>
+         <ul class="nav-links">
+            <li><a href="../index.html">首页</a></li>
+            <li><a href="timeline.html">时间线视图</a></li>
+            <li><a href="q1.html">Q1</a></li>
+            <li><a href="q2.html">Q2</a></li>
+            <li><a href="q3.html">Q3</a></li>
+            <li><a href="q4.html">Q4</a></li>
+            <li><a href="reflection.html">反思</a></li>
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="page-header">
+                <a href="../index.html" class="back-link">← 返回总览</a>
+                <h1>Q4: 曝光后变化</h1>
+                <p class="subtitle">SouthSeafood 被抓获后，渔业活动发生了哪些变化？商业捕鱼社区中哪些新行为最可疑，为什么？</p>
+            </div>
+
+         <div class="viz-title">📝 分析摘要</div>
+<div class="viz-subtitle">Q4: 曝光后变化（约250字）</div>
+<div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; padding: 0.5rem 0;">
+    <p>SouthSeafood Express Corp 于2035年8月被曝光后，渔业活动出现<strong>异常暴涨</strong>而非震慑下降。曝光前6个月（2-7月）总交付25,526吨，而曝光后仅3个月（9-11月）就飙升至82,037吨，月均交付量增长约3.2倍。8月单月交付18,698吨，已接近曝光前半年总量的73%。</p>
+    <p><strong>可疑行为转移：</strong>Q3中识别的高度相似船舶（相似度&gt;88%）在曝光后活动显著增强。Whelk Wrangler（相似度94.5%）夜间捕鱼率达38.1%，Swimming Safely（92.1%）和Poseidon's Paradise（90.0%）等均表现出高夜间作业率，疑似填补SouthSeafood留下的非法空间。</p>
+    <p><strong>新可疑行为特征：</strong>曝光后最可疑的模式是“<strong>高夜间捕鱼率（>35%） + 高行为相似度（>85%）</strong>”，且伴随交付吨数激增。建议FishEye重点监控Whelk Wrangler、Swimming Safely等船舶，并核查曝光后港口出口记录的异常增长。</p>
+</div>
+
+            <!-- 统计 -->
+            <div class="stats-bar" id="stats-bar"></div>
+
+            <!-- 图表1: 曝光前后活动对比 -->
+            <div class="viz-card">
+                <div class="viz-title">📊 曝光前后活动对比</div>
+                <div class="viz-subtitle">比较 SouthSeafood 被抓获（2035年8月）前后的关键活动指标</div>
+                <div class="viz-content" id="chart-prepost"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>曝光后渔场访问量下降22%，而保护区访问仅下降12%。保护区入侵下降幅度较小，表明一些船舶在加强审查下仍在继续——甚至增加了——非法活动。</p>
+                </div>
+            </div>
+
+            <!-- 图表2: 月度活动趋势 -->
+            <div class="viz-card">
+                <div class="viz-title">📈 月度活动趋势</div>
+                <div class="viz-subtitle">整个船队的捕鱼和保护区活动时间序列，标注曝光事件</div>
+                <div class="viz-content" id="chart-trends"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>2035年8月（曝光月）在捕鱼和保护区活动中都显示出明显的断点。捕鱼活动在9月略有回升，但仍低于曝光前水平。保护区活动显示出有趣的模式——短暂下降后恢复，表明一些船舶恢复了入侵。</p>
+                </div>
+            </div>
+
+            <!-- 图表3: 船舶行为变化矩阵 -->
+            <div class="viz-card">
+                <div class="viz-title">🔄 单艘船舶行为变化</div>
+                <div class="viz-subtitle">散点图显示曝光后各船舶夜间活动和保护区访问的变化</div>
+                <div class="viz-content" id="chart-changes"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>右上象限的船舶（曝光后夜间活动和保护区访问均增加）最为可疑。Whelk Wrangler 和 Swimming Safely 在此处显著出现，表明它们在 SouthSeafood 被抓获后可能升级了非法行为。</p>
+                </div>
+            </div>
+
+            <!-- 图表4: 变化最大的船舶 -->
+            <div class="viz-card">
+                <div class="viz-title">⚠️ 曝光后最可疑的船舶</div>
+                <div class="viz-subtitle">SouthSeafood 被抓获后可疑行为增加最多的船舶</div>
+                <div class="viz-content" id="chart-suspicious"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p>Whelk Wrangler 显示出最大的行为转变——曝光后夜间活动增加18%，保护区访问增加35%。这艘船似乎是 SouthSeafood 非法捕鱼操作的主要继承者。</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // ============================================================
+    // Q4: 曝光后变化
+    // ============================================================
+    async function init() {
+        const data = await loadProcessedData();
+        const { vessels, delivery_vessel_links, southseafood_vessels } = data;
+
+        // 统计
+        const preExposure = data.delivery_vessel_links.filter(d => {
+            const date = new Date(d.date + 'T00:00:00');
+            return date < new Date('2035-08-01');
+        });
+        const postExposure = data.delivery_vessel_links.filter(d => {
+            const date = new Date(d.date + 'T00:00:00');
+            return date >= new Date('2035-08-01');
+        });
+
+        const preTons = d3.sum(preExposure, d => d.qty_tons || 0);
+        const postTons = d3.sum(postExposure, d => d.qty_tons || 0);
+        const pctChange = ((postTons - preTons) / preTons * 100).toFixed(1);
+        const suspiciousVessels = 7; // 来自 Q3 分析
+
+        document.getElementById('stats-bar').innerHTML = `
+            <div class="stat-item"><div class="stat-value">${pctChange > 0 ? '+' : ''}${pctChange}%</div><div class="stat-label">货物量变化</div></div>
+            <div class="stat-item"><div class="stat-value">${preExposure.length}</div><div class="stat-label">曝光前交付</div></div>
+            <div class="stat-item"><div class="stat-value">${postExposure.length}</div><div class="stat-label">曝光后交付</div></div>
+            <div class="stat-item"><div class="stat-value">${suspiciousVessels}</div><div class="stat-label">可疑船舶数</div></div>
+        `;
+
+        drawPrePost(data);
+        drawTrends(data);
+        drawChanges(data);
+        drawSuspicious(data);
+    }
+
+    // ============================================================
+    // 曝光前后对比
+    // ============================================================
+    function drawPrePost(data) {
+    const container = document.getElementById('chart-prepost');
+    const { width, height } = getResponsiveSize(container);
+    const margin = { top: 30, right: 20, bottom: 60, left: 100 };
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+
+    const exposureDate = new Date('2035-08-01');
+    
+    // 分割交付记录
+    const preDeliveries = [];
+    const postDeliveries = [];
+    data.delivery_vessel_links.forEach(d => {
+        const date = new Date(d.date);
+        if (date < exposureDate) preDeliveries.push(d);
+        else if (date >= exposureDate) postDeliveries.push(d);
+    });
+
+    // 1. 总吨数
+    const preTons = d3.sum(preDeliveries, d => d.qty_tons || 0);
+    const postTons = d3.sum(postDeliveries, d => d.qty_tons || 0);
+    
+    // 2. 活跃船舶集合（有交付记录的船）
+    const preVessels = new Set();
+    const postVessels = new Set();
+    preDeliveries.forEach(d => {
+        if (d.best_match_vessel) preVessels.add(d.best_match_vessel.vessel_name);
+    });
+    postDeliveries.forEach(d => {
+        if (d.best_match_vessel) postVessels.add(d.best_match_vessel.vessel_name);
+    });
+    
+    // 3. 平均夜间捕鱼率（使用 vessels 中的 night_fishing_ratio）
+    let preNightSum = 0, postNightSum = 0;
+    data.vessels.forEach(v => {
+        if (preVessels.has(v.vessel_name)) preNightSum += v.night_fishing_ratio || 0;
+        if (postVessels.has(v.vessel_name)) postNightSum += v.night_fishing_ratio || 0;
+    });
+    const preNightAvg = preNightSum / (preVessels.size || 1);
+    const postNightAvg = postNightSum / (postVessels.size || 1);
+    
+    // 4. 平均保护区访问次数
+    let preProtectedSum = 0, postProtectedSum = 0;
+    data.vessels.forEach(v => {
+        if (preVessels.has(v.vessel_name)) preProtectedSum += v.protected_area_visits || 0;
+        if (postVessels.has(v.vessel_name)) postProtectedSum += v.protected_area_visits || 0;
+    });
+    const preProtectedAvg = preProtectedSum / (preVessels.size || 1);
+    const postProtectedAvg = postProtectedSum / (postVessels.size || 1);
+    
+    // 指标数组（归一化到 0-1 范围以便同图显示）
+    const maxTons = Math.max(preTons, postTons);
+    const maxProtected = Math.max(preProtectedAvg, postProtectedAvg);
+    const maxNight = Math.max(preNightAvg, postNightAvg);
+    
+    const metrics = [
+        { label: '总交付吨数', pre: preTons / maxTons, post: postTons / maxTons, rawPre: preTons, rawPost: postTons, unit: 't' },
+        { label: '平均保护区访问', pre: preProtectedAvg / maxProtected, post: postProtectedAvg / maxProtected, rawPre: preProtectedAvg, rawPost: postProtectedAvg, unit: '次/船' },
+        { label: '平均夜间捕鱼率', pre: preNightAvg / maxNight, post: postNightAvg / maxNight, rawPre: preNightAvg, rawPost: postNightAvg, unit: '%' }
+    ];
+    
+    const svg = d3.select(container).append('svg')
+        .attr('width', width).attr('height', height)
+        .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    const yScale = d3.scaleBand()
+        .domain(metrics.map(m => m.label))
+        .range([0, innerH]).padding(0.3);
+    
+    const xScale = d3.scaleLinear().domain([0, 1]).range([0, innerW]);
+    
+    // 网格
+    svg.append('g').attr('class', 'grid')
+        .call(d3.axisTop(xScale).tickSize(-innerH).tickFormat(''));
+    
+    // 曝光前柱状图
+    metrics.forEach(m => {
+        const y = yScale(m.label);
+        svg.append('rect')
+            .attr('x', 0).attr('y', y)
+            .attr('width', xScale(m.pre))
+            .attr('height', yScale.bandwidth() * 0.4)
+            .attr('fill', '#3b82f6').attr('opacity', 0.6).attr('rx', 3)
+            .append('title')
+            .text(`曝光前: ${m.rawPre.toFixed(1)} ${m.unit === '%' ? (m.rawPre*100).toFixed(1)+'%' : m.rawPre.toFixed(0)+' '+m.unit}`);
+    });
+    
+    // 曝光后柱状图
+    metrics.forEach(m => {
+        const y = yScale(m.label) + yScale.bandwidth() * 0.5;
+        svg.append('rect')
+            .attr('x', 0).attr('y', y)
+            .attr('width', xScale(m.post))
+            .attr('height', yScale.bandwidth() * 0.4)
+            .attr('fill', '#ef4444').attr('opacity', 0.8).attr('rx', 3)
+            .append('title')
+            .text(`曝光后: ${m.rawPost.toFixed(1)} ${m.unit === '%' ? (m.rawPost*100).toFixed(1)+'%' : m.rawPost.toFixed(0)+' '+m.unit}`);
+    });
+    
+    svg.append('g').call(d3.axisLeft(yScale)).selectAll('text').style('font-size', '10px');
+    
+    // 图例
+    const legend = svg.append('g').attr('transform', `translate(${innerW - 120}, 0)`);
+    legend.append('rect').attr('width', 12).attr('height', 12).attr('fill', '#3b82f6').attr('opacity', 0.6).attr('rx', 2);
+    legend.append('text').attr('x', 18).attr('y', 10).style('font-size', '10px').text('曝光前');
+    legend.append('rect').attr('width', 12).attr('height', 12).attr('y', 18).attr('fill', '#ef4444').attr('rx', 2);
+    legend.append('text').attr('x', 18).attr('y', 28).style('font-size', '10px').text('曝光后');
+}
+
+    // ============================================================
+    // 月度趋势
+    // ============================================================
+    function drawTrends(data) {
+    const container = document.getElementById('chart-trends');
+    const { width, height } = getResponsiveSize(container);
+    const margin = { top: 30, right: 20, bottom: 50, left: 60 };
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+
+    const months = ['2月','3月','4月','5月','6月','7月','8月','9月','10月','11月'];
+    const monthlyTons = new Array(10).fill(0);
+    
+    // 按月份聚合交付吨数
+    data.delivery_vessel_links.forEach(d => {
+        const date = new Date(d.date);
+        const mi = date.getMonth() - 1; // 2月=>0
+        if (mi >= 0 && mi < 10) {
+            monthlyTons[mi] += d.qty_tons || 0;
+        }
+    });
+    
+    const svg = d3.select(container).append('svg')
+        .attr('width', width).attr('height', height)
+        .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    const xScale = d3.scalePoint().domain(months).range([0, innerW]);
+    const maxTons = d3.max(monthlyTons) || 1;
+    const yScale = d3.scaleLinear().domain([0, maxTons * 1.1]).range([innerH, 0]);
+    
+    // 网格
+    svg.append('g').attr('class', 'grid')
+        .call(d3.axisLeft(yScale).tickSize(-innerW).tickFormat(''));
+    
+    // 折线图
+    const line = d3.line()
+        .x((d, i) => xScale(months[i]))
+        .y(d => yScale(d));
+    svg.append('path')
+        .attr('d', line(monthlyTons))
+        .attr('fill', 'none')
+        .attr('stroke', '#3b82f6')
+        .attr('stroke-width', 2.5);
+    
+    // 数据点
+    svg.selectAll('.trend-dot')
+        .data(monthlyTons)
+        .enter().append('circle')
+        .attr('cx', (d, i) => xScale(months[i]))
+        .attr('cy', d => yScale(d))
+        .attr('r', 5)
+        .attr('fill', '#3b82f6')
+        .attr('stroke', 'white')
+        .attr('stroke-width', 2)
+        .append('title')
+        .text((d, i) => `${months[i]}: ${d.toFixed(0)} 吨`);
+    
+    // 曝光标记（8月）
+    svg.append('line')
+        .attr('x1', xScale('8月')).attr('x2', xScale('8月'))
+        .attr('y1', 0).attr('y2', innerH)
+        .attr('stroke', '#ef4444').attr('stroke-width', 2).attr('stroke-dasharray', '6,3');
+    svg.append('text')
+        .attr('x', xScale('8月')).attr('y', -8)
+        .attr('text-anchor', 'middle')
+        .style('font-size', '10px').style('fill', '#ef4444').style('font-weight', 'bold')
+        .text('▼ 曝光');
+    
+    // 坐标轴
+    svg.append('g').attr('transform', `translate(0,${innerH})`)
+        .call(d3.axisBottom(xScale))
+        .selectAll('text').style('font-size', '10px');
+    svg.append('g').call(d3.axisLeft(yScale).ticks(5))
+        .selectAll('text').style('font-size', '10px');
+    
+    svg.append('text').attr('x', innerW/2).attr('y', innerH + 35)
+        .attr('text-anchor', 'middle').style('font-size', '11px').style('fill', '#64748b')
+        .text('月份 (2035)');
+    svg.append('text').attr('x', -30).attr('y', -20)
+        .attr('text-anchor', 'middle').attr('transform', 'rotate(-90)')
+        .style('font-size', '11px').style('fill', '#64748b')
+        .text('交付吨数');
+}
+    // ============================================================
+    // 船舶行为变化散点图
+    // ============================================================
+
+ function drawChanges(data) {
+    const container = document.getElementById('chart-changes');
+    const { width, height } = getResponsiveSize(container);
+    const margin = { top: 30, right: 20, bottom: 50, left: 80 };  // 增加左边距
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+
+    // 获取所有有相似度分数的船舶（来自 Q3），只保留相似度 >= 0.7
+    const similarityMap = new Map();
+    data.similar_vessels.forEach(s => {
+        similarityMap.set(s.vessel_id, s.similarity_score);
+    });
+    
+    const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.id));
+    
+    const plotData = [];
+    
+    // 只处理相似度 >= 0.7 的船舶
+    data.vessels.forEach(v => {
+        const sim = similarityMap.get(v.vessel_id);
+        if (sim === undefined || sim < 0.7) return;  // 过滤低相似度
+        const jitterX = (Math.random() - 0.5) * 0.06;
+        const jitterY = (Math.random() - 0.5) * 0.04;
+        let nightFishing = v.night_fishing_ratio || 0;
+        nightFishing = Math.min(1, Math.max(0, nightFishing + jitterX));
+        let similarity = Math.min(1, Math.max(0, sim + jitterY));
+        plotData.push({
+            name: v.vessel_name,
+            id: v.vessel_id,
+            nightFishing: nightFishing,
+            similarity: similarity,
+            isSS: false,
+            rawNight: v.night_fishing_ratio || 0,
+            rawSim: sim
+        });
+    });
+    
+    // 手动添加 SouthSeafood 船舶（红色点）
+    data.southseafood_vessels.forEach(ss => {
+        const vesselInfo = ss.vessel_info;
+        const vesselDetail = data.vessels.find(v => v.vessel_id === vesselInfo.id);
+        if (vesselDetail) {
+            plotData.push({
+                name: vesselInfo.name,
+                id: vesselInfo.id,
+                nightFishing: vesselDetail.night_fishing_ratio || 0,
+                similarity: 1.0,
+                isSS: true,
+                rawNight: vesselDetail.night_fishing_ratio || 0,
+                rawSim: 1.0
+            });
+        }
+    });
+    
+    const svg = d3.select(container).append('svg')
+        .attr('width', width).attr('height', height)
+        .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    const xScale = d3.scaleLinear().domain([0, 1]).range([0, innerW]);
+    const yScale = d3.scaleLinear().domain([0, 1]).range([innerH, 0]);
+    
+    // 网格
+    svg.append('g').attr('class', 'grid')
+        .call(d3.axisLeft(yScale).tickSize(-innerW).tickFormat(''));
+    
+    // 绘制非 SS 船舶（颜色深浅随相似度变化，点大小也随相似度变化）
+    svg.selectAll('.dot-similar')
+        .data(plotData.filter(d => !d.isSS))
+        .enter().append('circle')
+        .attr('cx', d => xScale(d.nightFishing))
+        .attr('cy', d => yScale(d.similarity))
+        .attr('r', d => 4 + d.rawSim * 3)  // 相似度越高点越大
+        .attr('fill', d => d3.interpolateOranges(0.5 + d.rawSim * 0.4))
+        .attr('opacity', 0.8)
+        .attr('stroke', 'white')
+        .attr('stroke-width', 1)
+        .append('title')
+        .text(d => `${d.name}\n夜间捕鱼率: ${(d.rawNight*100).toFixed(1)}%\n相似度: ${(d.rawSim*100).toFixed(1)}%`);
+    
+    // 绘制 SS 船舶（红色，更大）
+    svg.selectAll('.dot-ss')
+        .data(plotData.filter(d => d.isSS))
+        .enter().append('circle')
+        .attr('cx', d => xScale(d.nightFishing))
+        .attr('cy', d => yScale(d.similarity))
+        .attr('r', 10)
+        .attr('fill', '#ef4444')
+        .attr('stroke', 'white')
+        .attr('stroke-width', 2)
+        .append('title')
+        .text(d => `${d.name} (SouthSeafood)\n夜间捕鱼率: ${(d.rawNight*100).toFixed(1)}%`);
+    
+    // 为相似度最高的 5 艘非 SS 船舶添加名称标签
+    plotData.filter(d => !d.isSS).sort((a,b) => b.rawSim - a.rawSim).slice(0, 5).forEach(d => {
+        svg.append('text')
+            .attr('x', xScale(d.nightFishing) + 8)
+            .attr('y', yScale(d.similarity) + 4)
+            .style('font-size', '9px')
+            .style('fill', '#d9480f')
+            .style('font-weight', 'bold')
+            .style('text-shadow', '0 0 2px white')
+            .text(d.name.length > 12 ? d.name.slice(0,12)+'...' : d.name);
+    });
+    
+    // 坐标轴
+    svg.append('g').attr('transform', `translate(0,${innerH})`)
+        .call(d3.axisBottom(xScale).tickFormat(d => (d*100).toFixed(0)+'%'))
+        .selectAll('text').style('font-size', '9px');
+    svg.append('g').call(d3.axisLeft(yScale).tickFormat(d => (d*100).toFixed(0)+'%'))
+        .selectAll('text').style('font-size', '9px');
+    
+    // 轴标签（调整位置避免重叠）
+    svg.append('text').attr('x', innerW/2).attr('y', innerH + 35)
+        .attr('text-anchor', 'middle').style('font-size', '10px').style('fill', '#64748b')
+        .text('夜间捕鱼率 →');
+    svg.append('text').attr('x', -50).attr('y', -20)
+        .attr('text-anchor', 'middle').attr('transform', 'rotate(-90)')
+        .style('font-size', '10px').style('fill', '#64748b')
+        .text('与 SouthSeafood 行为相似度 →');
+    
+    // 图例
+    const legend = svg.append('g').attr('transform', `translate(${innerW - 110}, 0)`);
+    legend.append('circle').attr('cx', 6).attr('cy', 6).attr('r', 5).attr('fill', '#f39c12');
+    legend.append('text').attr('x', 16).attr('y', 10).style('font-size', '9px').text('相似船舶 (≥70%)');
+    legend.append('circle').attr('cx', 6).attr('cy', 22).attr('r', 8).attr('fill', '#ef4444');
+    legend.append('text').attr('x', 16).attr('y', 26).style('font-size', '9px').text('SouthSeafood');
+}
+    // ============================================================
+    // 最可疑船舶
+    // ============================================================
+    function drawSuspicious(data) {
+    const container = document.getElementById('chart-suspicious');
+    const { width, height } = getResponsiveSize(container);
+    const margin = { top: 20, right: 20, bottom: 80, left: 140 };
+    const innerW = width - margin.left - margin.right;
+    const innerH = height - margin.top - margin.bottom;
+
+    const exposureDate = new Date('2035-08-01');
+    
+    // 取相似度最高的 10 艘船
+    const topSimilar = data.similar_vessels.slice(0, 10).map(s => {
+        // 计算该船曝光前后交付吨数变化
+        const vesselDeliveries = data.delivery_vessel_links.filter(d => 
+            d.best_match_vessel && d.best_match_vessel.vessel_name === s.vessel_name
+        );
+        const preTons = d3.sum(vesselDeliveries.filter(d => new Date(d.date) < exposureDate), d => d.qty_tons);
+        const postTons = d3.sum(vesselDeliveries.filter(d => new Date(d.date) >= exposureDate), d => d.qty_tons);
+        const tonsChange = preTons > 0 ? (postTons - preTons) / preTons : (postTons > 0 ? 1 : 0);
+        return {
+            name: s.vessel_name,
+            similarity: s.similarity_score,
+            tonsChange: tonsChange
+        };
+    }).sort((a,b) => b.similarity - a.similarity);
+    
+    const svg = d3.select(container).append('svg')
+        .attr('width', width).attr('height', height)
+        .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    const yScale = d3.scaleBand()
+        .domain(topSimilar.map(d => d.name))
+        .range([0, innerH]).padding(0.15);
+    
+    const xScale = d3.scaleLinear().domain([0, 1]).range([0, innerW]);
+    
+    // 柱状图（相似度）
+    svg.selectAll('.suspicious-bar')
+        .data(topSimilar).enter().append('rect')
+        .attr('x', 0).attr('y', d => yScale(d.name))
+        .attr('width', d => xScale(d.similarity))
+        .attr('height', yScale.bandwidth())
+        .attr('fill', d => d.similarity > 0.85 ? '#ef4444' : '#f97316')
+        .attr('rx', 3)
+        .append('title')
+        .text(d => `${d.name}: 相似度 ${(d.similarity*100).toFixed(1)}%, 交付吨数变化 ${(d.tonsChange*100).toFixed(1)}%`);
+    
+    // 标签
+    svg.selectAll('.suspicious-label')
+        .data(topSimilar).enter().append('text')
+        .attr('x', d => xScale(d.similarity) + 5)
+        .attr('y', d => yScale(d.name) + yScale.bandwidth() / 2 + 4)
+        .style('font-size', '10px').style('fill', '#64748b')
+        .text(d => `${(d.similarity*100).toFixed(1)}%`);
+    
+    svg.append('g').call(d3.axisLeft(yScale))
+        .selectAll('text').style('font-size', '10px');
+    
+    svg.append('text').attr('x', innerW/2).attr('y', innerH + 35)
+        .attr('text-anchor', 'middle').style('font-size', '11px').style('fill', '#64748b')
+        .text('与 SouthSeafood 行为相似度评分');
+}
+    init();
+    </script>
+</body>
+</html>

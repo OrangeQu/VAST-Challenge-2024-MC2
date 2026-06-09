@@ -624,7 +624,7 @@ function renderRadar() {
     const isSeedVessel = !isSeedAvg && STATE.seedIds.has(v.vessel_id);
     let strokeColor;
     if (isSeedAvg) {
-      strokeColor = '#ef4444';
+      strokeColor = '#1e293b';
     } else if (isSeedVessel) {
       strokeColor = '#e11d48';
     } else {
@@ -729,7 +729,7 @@ function renderEvidence() {
     if ((v.protected_dwell_ratio || 0) > 0.05) {
       items.push({ vessel: v.vessel_name, text: '⚠️ 保护区内停留占比 ' + fmtPct(v.protected_dwell_ratio) + '，涉嫌非法捕鱼。', severity: 'high' });
     }
-    if ((v.night_fishing_ratio || 0) > 0.4) {
+    if ((v.night_fishing_ratio || 0) > 0.5) {
       items.push({ vessel: v.vessel_name, text: '🌙 夜间作业比例高 (' + fmtPct(v.night_fishing_ratio) + ')，规避日间监管。', severity: 'medium' });
     }
     if ((v.avg_dwell_hours || 0) < 3) {
@@ -817,7 +817,7 @@ function renderStatsCompare() {
     { key: 'avg_dwell_hours', label: '停留(h)', max: 20 },
     { key: 'night_fishing_ratio', label: '夜间捕鱼', max: 1 },
     { key: 'protected_dwell_ratio', label: '保护区', max: 0.5 },
-    { key: 'locations_per_day', label: '日移动', max: 10 }
+    { key: 'locations_per_day', label: '日移动', max: 15 }
   ];
 
   const x0 = d3.scaleBand().domain(categories.map(d => d.key)).range([0, innerW]).padding(0.3);
@@ -1050,7 +1050,7 @@ function initDashboard() {
             const isSeed = STATE.seedIds.has(sv.vessel_id);
             if (isSeed) items.push({ vessel: sv.vessel_name, text: '已知违规船，夜间捕鱼率 ' + fmtPct(sv.night_fishing_ratio || 0), severity: 'high' });
             if ((sv.protected_dwell_ratio || 0) > 0.05) items.push({ vessel: sv.vessel_name, text: '保护区内停留占比 ' + fmtPct(sv.protected_dwell_ratio), severity: 'high' });
-            if ((sv.night_fishing_ratio || 0) > 0.4) items.push({ vessel: sv.vessel_name, text: '夜间作业比例高 (' + fmtPct(sv.night_fishing_ratio) + ')', severity: 'medium' });
+            if ((sv.night_fishing_ratio || 0) > 0.5) items.push({ vessel: sv.vessel_name, text: '夜间作业比例高 (' + fmtPct(sv.night_fishing_ratio) + ')', severity: 'medium' });
             if ((sv.avg_dwell_hours || 0) < 3) items.push({ vessel: sv.vessel_name, text: '平均停留时间短 (' + fmtHour(sv.avg_dwell_hours) + ')', severity: 'low' });
           });
           return items;

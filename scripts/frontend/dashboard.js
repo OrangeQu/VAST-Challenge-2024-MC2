@@ -23,8 +23,7 @@ const STATE = {
   mapMode: 'single',
   timelineLayer: 'all',
   filterSeedOnly: false,
-  filterProtected: false,
-  filterNight: false,
+  filterProtected: false, // 时间轴过滤：仅显示保护区停留
   vesselById: new Map(),
   vesselByName: new Map(),
   seedIds: new Set(),
@@ -147,8 +146,6 @@ async function loadAllData() {
 function getFilteredVessels() {
   let list = STATE.vessels;
   if (STATE.filterSeedOnly) list = list.filter(v => STATE.seedIds.has(v.vessel_id));
-  if (STATE.filterProtected) list = list.filter(v => (v.protected_dwell_ratio || 0) > 0.01);
-  if (STATE.filterNight) list = list.filter(v => (v.night_fishing_ratio || 0) > 0.3);
   return list;
 }
 
@@ -273,6 +270,19 @@ function renderFilters() {
     }
   } else {
     comSelect.value = 'all';
+  }
+
+  // 恢复地点筛选下拉框的值（renderFilters 重建了 DOM，导致选中值丢失）
+  if (STATE.location !== 'all') {
+    const currentLocOpt = Array.from(locSelect.options).find(opt => opt.value === STATE.location);
+    if (currentLocOpt) {
+      locSelect.value = STATE.location;
+    } else {
+      STATE.location = 'all';
+      locSelect.value = 'all';
+    }
+  } else {
+    locSelect.value = 'all';
   }
 }
 
@@ -968,13 +978,8 @@ function initDashboard() {
     };
     document.getElementById('filter-protected').onchange = function(e) {
       STATE.filterProtected = e.target.checked;
-      STATE.selectedVesselIds = []; // 过滤条件变了，清除框选
-      refreshAll();
-    };
-    document.getElementById('filter-night').onchange = function(e) {
-      STATE.filterNight = e.target.checked;
-      STATE.selectedVesselIds = []; // 过滤条件变了，清除框选
-      refreshAll();
+      // 仅保护区是时间轴过滤，不影响聚类视图和框选
+      refreshAll({ skipCluster: true });
     };
 
     // 地图模式

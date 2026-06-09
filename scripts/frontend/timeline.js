@@ -59,7 +59,12 @@
       'Exit East': '#6b7280', 'Exit North': '#6b7280', 'Exit South': '#6b7280', 'Exit West': '#6b7280'
     };
     function getLocColor(loc) {
-      return locationColorMap[loc] || '#10b981';
+      if (!loc) return '#10b981';
+      if (locationColorMap[loc]) return locationColorMap[loc];
+      for (const [key, color] of Object.entries(locationColorMap)) {
+        if (loc.includes(key) || key.includes(loc)) return color;
+      }
+      return '#10b981';
     }
     function getLocLabel(loc) {
       if (loc === 'Ghoti Preserve' || loc === 'Don Limpet Preserve') return '🔴 ' + loc;
@@ -120,6 +125,8 @@
     function isProtectedPing(p) {
       if (!p) return false;
       if (p.loc_type === 'protected' || p.is_protected === true) return true;
+      // 按地点名称判断：保护区的名称包含 Preserve
+      if (p.location && p.location.includes('Preserve')) return true;
       const lon = typeof p.lon === 'number' ? p.lon : Number(p.lon);
       const lat = typeof p.lat === 'number' ? p.lat : Number(p.lat);
       if (!Number.isFinite(lon) || !Number.isFinite(lat)) return false;
@@ -177,6 +184,9 @@
             if (locTrim !== filterTrim) return;
           }
 
+          // 仅保护区过滤：勾选后只显示保护区的停留色块
+          if (STATE.filterProtected && !isProtectedPing(p)) return;
+
           const t = new Date(p.time);
           const dwellH = (p.dwell || 0) / 3600;
           const x = xScale(t);
@@ -222,7 +232,7 @@
       .attr('fill', '#f8fafc').attr('stroke', '#e2e8f0').attr('stroke-width', 0.5).attr('rx', 4);
     g.append('text').attr('x', -8).attr('y', currentY + 16)
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
-      .text('📍 位置与停留');
+      .text('📍 位置与停留' + (STATE.location !== 'all' ? '  |  筛选: ' + STATE.location : '') + (STATE.filterProtected ? '  |  🛡️ 仅保护区' : ''));
     drawMonthLines(currentY, currentY + e1);
 
     // 计算行数：主船 + 聚集船

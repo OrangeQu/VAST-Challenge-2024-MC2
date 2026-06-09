@@ -905,7 +905,7 @@ function initDashboard() {
         const hideNav = !navEl.classList.contains('nav-hidden');
         navEl.classList.toggle('nav-hidden', hideNav);
         mainEl.classList.toggle('nav-collapsed', hideNav);
-        navToggle.textContent = hideNav ? '显示导航' : '隐藏导航';
+        navToggle.textContent = hideNav ? '☰' : '✕';
         navToggle.setAttribute('aria-expanded', (!hideNav).toString());
       });
     }

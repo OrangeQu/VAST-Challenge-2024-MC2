@@ -1,0 +1,372 @@
+{
+   "directed": false,
+   "multigraph": false,
+   "graph": {},
+   "nodes": [
+      {
+         "Name": "Haacklee",
+         "Description": null,
+         "*Kind": "city",
+         "type": "Entity.Location.City",
+         "Activities": [
+            "Tourism",
+            "Local shipping"
+         ],
+         "id": "Haacklee"
+      },
+      {
+         "Name": "Port Grove",
+         "Description": null,
+         "*Kind": "city",
+         "type": "Entity.Location.City",
+         "Activities": [
+            "Tourism",
+            "Research"
+         ],
+         "id": "Port Grove"
+      },
+      {
+         "Name": "Lomark",
+         "Description": null,
+         "*Kind": "city",
+         "type": "Entity.Location.City",
+         "Activities": [
+            "Deep sea fishing",
+            "Commercial fishing",
+            "Tourism",
+            "Shipping"
+         ],
+         "id": "Lomark"
+      },
+      {
+         "Name": "Himark",
+         "Description": null,
+         "*Kind": "city",
+         "type": "Entity.Location.City",
+         "Activities": [
+            "Recreation, tourism"
+         ],
+         "id": "Himark"
+      },
+      {
+         "Name": "Paackland",
+         "Description": null,
+         "*Kind": "city",
+         "type": "Entity.Location.City",
+         "Activities": [
+            "Industry",
+            "Fishing industry",
+            "Local shipping",
+            "Tourism",
+            "Research",
+            "Sport fishing"
+         ],
+         "id": "Paackland"
+      },
+      {
+         "Name": "Centralia",
+         "Description": "Adimistrative seat of Oceanus",
+         "*Kind": "city",
+         "type": "Entity.Location.City",
+         "Activities": [
+            "Goverment",
+            "Recreation",
+            "Resarch"
+         ],
+         "id": "Centralia"
+      },
+      {
+         "Name": "South Paackland",
+         "Description": null,
+         "*Kind": "city",
+         "type": "Entity.Location.City",
+         "Activities": [
+            "Industry",
+            "Fishing industry",
+            "Local shipping"
+         ],
+         "id": "South Paackland"
+      },
+      {
+         "Name": "Exit West",
+         "Description": null,
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "International shipping",
+            "Deep sea fishing"
+         ],
+         "id": "Exit West"
+      },
+      {
+         "Name": "Nav 3",
+         "Description": "Navigation in/out of South Paackland",
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "Navigation"
+         ],
+         "id": "Nav 3"
+      },
+      {
+         "Name": "Nav D",
+         "Description": "Safe navigation around Nemo Reef",
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "Navigation"
+         ],
+         "id": "Nav D"
+      },
+      {
+         "Name": "Nav B",
+         "Description": "Safe Navigation around Limpet Preserve",
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "Navigation"
+         ],
+         "id": "Nav B"
+      },
+      {
+         "Name": "Nav A",
+         "Description": "Safe Navigation around Limpet Preserve",
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "Navigation"
+         ],
+         "id": "Nav A"
+      },
+      {
+         "Name": "Nav C",
+         "Description": "Safe Navigation near Lomark",
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "Navigation"
+         ],
+         "id": "Nav C"
+      },
+      {
+         "Name": "Nav 2",
+         "Description": "Safe navigation near Ghoti Preserve and Paackland",
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "Navigation"
+         ],
+         "id": "Nav 2"
+      },
+      {
+         "Name": "Nav 1",
+         "Description": "Navigation north of Ghoti Preserve",
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "Navigation"
+         ],
+         "id": "Nav 1"
+      },
+      {
+         "Name": "Exit East",
+         "Description": null,
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "International shipping",
+            "Deep sea fishing"
+         ],
+         "id": "Exit East"
+      },
+      {
+         "Name": "Exit South",
+         "Description": null,
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "International shipping",
+            "Deep sea fishing"
+         ],
+         "id": "Exit South"
+      },
+      {
+         "Name": "Exit North",
+         "Description": null,
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "International shipping",
+            "Deep sea fishing"
+         ],
+         "id": "Exit North"
+      },
+      {
+         "Name": "Nav E",
+         "Description": "Safe Navigation",
+         "*Kind": "buoy",
+         "type": "Entity.Location.Point",
+         "Activities": [
+            "Navigation"
+         ],
+         "id": "Nav E"
+      },
+      {
+         "Name": "Suna Island",
+         "Description": "Large island of Oceanus",
+         "*note": "Suna is 'sand' or 'gritty' in Japanese",
+         "Activities": [
+            "Residential"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Island",
+         "fish_species_present": null,
+         "id": "Suna Island"
+      },
+      {
+         "Name": "Thalassa Retreat",
+         "Description": "Smaller island of Oceanus",
+         "*note": "Thalassa is 'ocean' in greek",
+         "Activities": [
+            "Residential"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Island",
+         "fish_species_present": null,
+         "id": "Thalassa Retreat"
+      },
+      {
+         "Name": "Makara Shoal",
+         "Description": "A small, generally unregulated island",
+         "*note": "'Makara' is a legendary sea guardian in Hindi",
+         "Activities": [
+            "Recreation"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Island",
+         "fish_species_present": null,
+         "id": "Makara Shoal"
+      },
+      {
+         "Name": "Silent Sanctuary",
+         "Description": "A small bird sea-bird sanctuary",
+         "*note": null,
+         "Activities": [
+            "Tourism",
+            "Research"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Island",
+         "fish_species_present": null,
+         "id": "Silent Sanctuary"
+      },
+      {
+         "Name": "Cod Table",
+         "Description": "",
+         "*note": null,
+         "Activities": [
+            "Commercial fishing"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Fishing Ground",
+         "fish_species_present": [
+            "Cod/Gadus n.specificatae",
+            "Birdseye/Pisces frigus",
+            "Beauvoir/Habeas pisces"
+         ],
+         "id": "Cod Table"
+      },
+      {
+         "Name": "Ghoti Preserve",
+         "Description": "",
+         "*note": null,
+         "Activities": [
+            "Research",
+            "Tourism",
+            "Recreation"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Ecological Preserve",
+         "fish_species_present": [
+            "Wrasse/Labridae n.refert",
+            "Beauvoir/Habeas pisces",
+            "Helenaa/Pisces satis",
+            "Offidiaa/Piscis osseus"
+         ],
+         "id": "Ghoti Preserve"
+      },
+      {
+         "Name": "Wrasse Beds",
+         "Description": "",
+         "*note": null,
+         "Activities": [
+            "Commercial fishing"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Fishing Ground",
+         "fish_species_present": [
+            "Wrasse/Labridae n.refert",
+            "Birdseye/Pisces frigus",
+            "Beauvoir/Habeas pisces"
+         ],
+         "id": "Wrasse Beds"
+      },
+      {
+         "Name": "Nemo Reef",
+         "Description": "",
+         "*note": null,
+         "Activities": [
+            "Recreation",
+            "Tourism"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Ecological Preserve",
+         "fish_species_present": [
+            "Wrasse/Labridae n.refert",
+            "Tuna/Thunnini n.vera",
+            "Birdseye/Pisces frigus",
+            "Beauvoir/Habeas pisces",
+            "Helenaa/Pisces satis"
+         ],
+         "id": "Nemo Reef"
+      },
+      {
+         "Name": "Don Limpet Preserve",
+         "Description": "",
+         "*note": null,
+         "Activities": [
+            "Recreation",
+            "Tourism"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Ecological Preserve",
+         "fish_species_present": [
+            "Tuna/Thunnini n.vera",
+            "Birdseye/Pisces frigus",
+            "Beauvoir/Habeas pisces",
+            "Helenaa/Pisces satis",
+            "Sockfish/Pisces foetida"
+         ],
+         "id": "Don Limpet Preserve"
+      },
+      {
+         "Name": "Tuna Shelf",
+         "Description": "",
+         "*note": null,
+         "Activities": [
+            "Commercial fishing",
+            "Sport fishing"
+         ],
+         "type": "Entity.Location.Region",
+         "*Kind": "Fishing Ground",
+         "fish_species_present": [
+            "Tuna/Thunnini n.vera",
+            "Birdseye/Pisces frigus",
+            "Beauvoir/Habeas pisces",
+            "Harland/Piscis sapidum"
+         ],
+         "id": "Tuna Shelf"
+      }
+   ],
+   "links": []
+}

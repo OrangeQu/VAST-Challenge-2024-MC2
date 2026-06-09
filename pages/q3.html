@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Q3 - 相似船舶检测 | FishEye Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/main.css">
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="../scripts/frontend/viz-utils.js"></script>
+</head>
+<body class="app-body">
+    <nav class="nav-bar glass-nav">
+        <a href="../index.html" class="nav-brand"><div class="logo">FE</div><span>FishEye Analytics</span></a>
+        <ul class="nav-links">
+            <li><a href="../index.html">首页</a></li>
+            <li><a href="timeline.html">时间线视图</a></li>
+            <li><a href="q1.html">Q1</a></li>
+            <li><a href="q2.html">Q2</a></li>
+            <li><a href="q3.html" class="active">Q3</a></li>
+            <li><a href="q4.html">Q4</a></li>
+        </ul>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            <section class="hero hero-dashboard hero-glow">
+                <div class="hero-badge"><span>MC2 · Q3</span> · 相似船舶扩展调查</div>
+                <h1>相似船舶检测<br>与行为指纹分析</h1>
+                <p>基于多维行为特征、t-SNE 聚类与雷达图指纹对比，将已知违规船作为种子，扩展识别与 SouthSeafood 高度相似的潜在嫌疑船舶。</p>
+                <div class="hero-actions">
+                    <a class="btn" href="#workspace">进入分析</a>
+                    <a class="btn btn-ghost" href="../index.html">返回总览</a>
+                </div>
+            </section>
+
+            <section class="stats-bar stats-bar-hero" id="stats-bar"></section>
+
+            <section id="workspace" class="dashboard-stack">
+                <div class="viz-card panel-card glass-panel">
+                    <div class="viz-title">📝 分析摘要</div>
+                    <div class="viz-subtitle">Q3: 相似船舶检测</div>
+                    <div style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.8; padding: 0.25rem 0 0.5rem;">
+                        <p>SouthSeafood Express Corp 运营两艘渔船：<strong>Snapper Snatcher</strong> 和 <strong>Roach Robber</strong>。本分析基于 12 个行为特征，使用 <strong>t-SNE 非线性降维</strong>和行为指纹对比，识别全船队中最相似的船舶。</p>
+                        <p style="margin-top: .75rem;"><strong>分析重点：</strong>哪些船舶在夜间作业、保护区停留、停留时长和移动节奏上与 SouthSeafood 接近，以及它们是否构成新的可疑群体。</p>
+                    </div>
+                </div>
+
+                <div class="viz-card panel-card glass-panel">
+                    <div class="viz-title">🗺️ 行为空间聚类地图 (t-SNE) - 可交互</div>
+                    <div class="viz-subtitle">红色 = SouthSeafood | 紫色 = 高度可疑 | 灰色 = 普通渔船</div>
+                    <div class="tsne-controls">
+                        <button class="tsne-btn" id="reset-view-btn">🔄 重置视图</button>
+                        <button class="tsne-btn" id="zoom-in-btn">🔍 放大</button>
+                        <button class="tsne-btn" id="zoom-out-btn">🔍 缩小</button>
+                        <button class="tsne-btn" id="highlight-ss-btn">⭐ 高亮 SouthSeafood</button>
+                        <button class="tsne-btn" id="highlight-suspect-btn">⚠️ 高亮可疑船舶</button>
+                        <span class="tsne-info" id="tsne-point-count">加载中...</span>
+                    </div>
+                    <div class="viz-content" id="chart-tsne" style="height: 550px;"></div>
+                    <div class="selected-info" id="selected-info"><strong>📌 已选中船舶</strong><br><span id="selected-vessel-name">-</span><span id="selected-vessel-detail"></span></div>
+                    <div class="insights-box"><h4>💡 核心发现</h4><p id="insight-tsne">加载数据中...</p></div>
+                </div>
+
+                <div class="viz-card panel-card glass-panel">
+                    <div class="viz-title">📡 行为指纹雷达图</div>
+                    <div class="viz-subtitle">SouthSeafood（红色）vs Top 3 相似船舶（紫色）vs 船队平均（灰色）</div>
+                    <div class="viz-content" id="chart-radar" style="height: 450px;"></div>
+                    <div class="insights-box"><h4>💡 核心发现</h4><p id="insight-radar">加载数据中...</p></div>
+                </div>
+
+                <div class="viz-card panel-card glass-panel">
+                    <div class="viz-title">⚡ 平行坐标图</div>
+                    <div class="viz-subtitle">红色 = SouthSeafood | 紫色 = 可疑船舶 | 灰色 = 其他船只</div>
+                    <div class="viz-content" id="chart-parallel" style="height: 500px;"></div>
+                    <div class="insights-box"><h4>💡 核心发现</h4><p id="insight-parallel">平行坐标图展示了各船舶在多个行为维度上的表现。</p></div>
+                </div>
+
+                <div class="viz-card panel-card glass-panel">
+                    <div class="viz-title">📋 高度可疑船舶详细清单</div>
+                    <div class="viz-subtitle">综合相似度 ≥ 95% 的船舶（共 <span id="high-suspect-count">--</span> 艘）</div>
+                    <div class="viz-content" id="suspect-table" style="overflow-x: auto; max-height: 500px; overflow-y: auto;"></div>
+                    <div class="insights-box"><h4>💡 行动建议</h4><p id="insight-action">加载数据中...</p></div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+            <div class="viz-card">
+                <div class="viz-title">📝 分析摘要</div>
+                <div style="color: var(--text-secondary); font-size: 0.9rem; line-height: 1.8; padding: 0.5rem 0;">
+                    <p>SouthSeafood Express Corp 运营两艘渔船：<strong>Snapper Snatcher</strong> 和 <strong>Roach Robber</strong>。本分析基于12个行为特征，使用 <strong>t-SNE 非线性降维</strong>和 <strong>MinMaxScaler 归一化</strong>，识别全船队中最相似的船舶。</p>
+                    <p><strong>🔴 最相似船舶：</strong><strong id="top-similar-name">加载中...</strong>（<strong id="top-similar-score">-</strong>%）—— 在关键行为指标上与 SouthSeafood 高度一致。</p>
+                </div>
+            </div>
+
+            <div class="stats-bar" id="stats-bar"></div>
+
+            <div class="viz-card">
+                <div class="viz-title">🗺️ 行为空间聚类地图 (t-SNE) - 可交互</div>
+                <div class="viz-subtitle">非线性降维将12维行为特征映射到2D空间 | 红色 = SouthSeafood | 紫色 = 高度可疑 (≥95%) | 灰色 = 普通渔船 | 💡 悬停查看详情 | 拖拽框选区域 | 点击缩放</div>
+                
+                <!-- 交互控制面板 -->
+                <div class="tsne-controls">
+                    <button class="tsne-btn" id="reset-view-btn">🔄 重置视图</button>
+                    <button class="tsne-btn" id="zoom-in-btn">🔍 放大</button>
+                    <button class="tsne-btn" id="zoom-out-btn">🔍 缩小</button>
+                    <button class="tsne-btn" id="highlight-ss-btn">⭐ 高亮 SouthSeafood</button>
+                    <button class="tsne-btn" id="highlight-suspect-btn">⚠️ 高亮可疑船舶</button>
+                    <span class="tsne-info" id="tsne-point-count">加载中...</span>
+                </div>
+                
+                <div class="viz-content" id="chart-tsne" style="height: 550px;"></div>
+                
+                <!-- 选中船舶信息面板 -->
+                <div class="selected-info" id="selected-info">
+                    <strong>📌 已选中船舶</strong><br>
+                    <span id="selected-vessel-name">-</span>
+                    <span id="selected-vessel-detail"></span>
+                </div>
+                
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p id="insight-tsne">加载数据中...</p>
+                </div>
+            </div>
+
+            <div class="viz-card">
+                <div class="viz-title">📡 行为指纹雷达图 (Radar Chart)</div>
+                <div class="viz-subtitle">SouthSeafood（红色）vs Top 3 相似船舶（紫色）vs 船队平均（灰色）</div>
+                <div class="viz-content" id="chart-radar" style="height: 450px;"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p id="insight-radar">加载数据中...</p>
+                </div>
+            </div>
+
+            <div class="viz-card">
+                <div class="viz-title">⚡ 平行坐标图 (Parallel Coordinates)</div>
+                <div class="viz-subtitle">红色 = SouthSeafood | 紫色 = 可疑船舶 (≥95%) | 灰色 = 其他船只</div>
+                <div class="viz-content" id="chart-parallel" style="height: 500px;"></div>
+                <div class="insights-box">
+                    <h4>💡 核心发现</h4>
+                    <p id="insight-parallel">平行坐标图展示了各船舶在10个行为维度上的表现。SouthSeafood（红线）和可疑船舶（紫线）在各维度上高度重合。</p>
+                </div>
+            </div>
+
+            <div class="viz-card">
+                <div class="viz-title">📋 高度可疑船舶详细清单</div>
+                <div class="viz-subtitle">综合相似度 ≥ 95% 的船舶（共 <span id="high-suspect-count">--</span> 艘）</div>
+                <div class="viz-content" id="suspect-table" style="overflow-x: auto; max-height: 500px; overflow-y: auto;"></div>
+                <div class="insights-box">
+                    <h4>💡 行动建议</h4>
+                    <p id="insight-action">加载数据中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        const SIMILARITY_THRESHOLD = 0.95;
+        
+        const FEATURE_DIMENSIONS = [
+            { key: 'night_ratio', label: '夜间活动', color: '#f97316', weight: 0.15, unit: '%', format: (v) => ((v || 0) * 100).toFixed(0) + '%', range: [0, 1] },
+            { key: 'night_fishing_ratio', label: '夜间捕鱼', color: '#ec489a', weight: 0.12, unit: '%', format: (v) => ((v || 0) * 100).toFixed(0) + '%', range: [0, 1] },
+            { key: 'fishing_ground_visits', label: '渔场访问', color: '#10b981', weight: 0.10, unit: '次', format: (v) => Math.round(v || 0) + '次', range: null },
+            { key: 'avg_dwell_hours', label: '停留时间', color: '#06b6d4', weight: 0.10, unit: 'h', format: (v) => (v || 0).toFixed(1) + 'h', range: [0, 50] },
+            { key: 'entropy', label: '移动熵', color: '#8b5cf6', weight: 0.08, unit: '', format: (v) => (v || 0).toFixed(2), range: [0, 4] },
+            { key: 'protected_dwell_ratio', label: '保护区停留', color: '#ef4444', weight: 0.12, unit: '%', format: (v) => ((v || 0) * 100).toFixed(0) + '%', range: [0, 1] },
+            { key: 'fishing_intensity', label: '捕鱼强度', color: '#f59e0b', weight: 0.08, unit: '次/天', format: (v) => (v || 0).toFixed(1), range: null },
+            { key: 'intrusion_frequency', label: '入侵频率', color: '#dc2626', weight: 0.08, unit: '次/天', format: (v) => (v || 0).toFixed(2), range: null },
+            { key: 'locations_per_day', label: '日移动频率', color: '#14b8a6', weight: 0.07, unit: '个/天', format: (v) => (v || 0).toFixed(1), range: null },
+            { key: 'avg_periodicity', label: '周期性', color: '#6366f1', weight: 0.05, unit: '', format: (v) => (v || 0).toFixed(2), range: [0, 1] }
+        ];
+
+        const RADAR_FEATURES = FEATURE_DIMENSIONS.slice(0, 8);
+        const PARALLEL_FEATURES = FEATURE_DIMENSIONS;
+
+        let processedData = null;
+        let vesselsMap = {};
+        let ssVessels = [];
+        let similarVessels = [];
+        let highSuspectVessels = [];
+        let vesselIds = [];
+        let vesselTsneMap = {};
+        
+        // t-SNE 交互相关变量
+        let currentTransform = { x: 0, y: 0, k: 1 };
+        let pointsData = [];
+        let svgGroup = null;
+        let tooltip = null;
+
+        function getActualChartSize(container) {
+            let w = container.clientWidth;
+            let h = parseInt(container.style.height) || 450;
+            if (w <= 0) {
+                const mainContainer = document.querySelector('.container');
+                w = mainContainer ? mainContainer.clientWidth - 40 : 800;
+            }
+            return { width: w, height: h };
+        }
+
+        async function loadData() {
+            const response = await fetch('../data/processed_data_v2.json');
+            return await response.json();
+        }
+
+        async function init() {
+            try {
+                processedData = await loadData();
+                const vessels = processedData.vessels || [];
+                const ssData = processedData.southseafood_vessels || [];
+                const similar = processedData.similar_vessels || [];
+                
+                vessels.forEach(v => { vesselsMap[v.vessel_id] = v; });
+                vesselIds = vessels.map(v => v.vessel_id);
+                ssVessels = ssData.map(s => s.features).filter(f => f);
+                
+                const vesselSimMap = new Map();
+                similar.forEach(sim => {
+                    if (!vesselSimMap.has(sim.vessel_id) || sim.similarity_score > vesselSimMap.get(sim.vessel_id).score) {
+                        vesselSimMap.set(sim.vessel_id, {
+                            vessel_id: sim.vessel_id,
+                            vessel_name: sim.vessel_name,
+                            company: sim.company,
+                            score: sim.similarity_score
+                        });
+                    }
+                });
+                similarVessels = Array.from(vesselSimMap.values()).sort((a, b) => b.score - a.score);
+                highSuspectVessels = similarVessels.filter(v => v.score >= SIMILARITY_THRESHOLD);
+                
+                vessels.forEach(v => {
+                    if (v.tsne_x !== undefined && v.tsne_y !== undefined) {
+                        vesselTsneMap[v.vessel_id] = { x: v.tsne_x, y: v.tsne_y, name: v.vessel_name, company: v.company };
+                    }
+                });
+                
+                updateStatsBar();
+                renderAllCharts();
+                
+                if (similarVessels.length > 0) {
+                    document.getElementById('top-similar-name').textContent = similarVessels[0].vessel_name;
+                    document.getElementById('top-similar-score').textContent = (similarVessels[0].score * 100).toFixed(1);
+                }
+                
+                // 创建工具提示
+                tooltip = d3.select('body').append('div')
+                    .attr('class', 'custom-tooltip')
+                    .style('opacity', 0);
+                
+                let resizeTimeout;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => { renderAllCharts(); }, 200);
+                });
+                
+            } catch (error) {
+                console.error('初始化失败:', error);
+            }
+        }
+
+        function renderAllCharts() {
+            if (!processedData) return;
+            drawTsneMap();
+            drawRadarChart();
+            drawParallelCoordinates();
+            drawSuspectTable();
+        }
+        
+        function updateStatsBar() {
+            const highSimCount = highSuspectVessels.length;
+            const topScore = similarVessels[0]?.score || 0;
+            const ssAvgNight = (ssVessels.reduce((s, v) => s + (v.night_ratio || 0), 0) / ssVessels.length * 100).toFixed(0);
+            const ssAvgDwell = (ssVessels.reduce((s, v) => s + (v.avg_dwell_hours || 0), 0) / ssVessels.length).toFixed(1);
+            
+            document.getElementById('stats-bar').innerHTML = `
+                <div class="stat-item"><div class="stat-value">${highSimCount}</div><div class="stat-label">相似度 ≥95% 船舶</div></div>
+                <div class="stat-item"><div class="stat-value">${(topScore * 100).toFixed(1)}%</div><div class="stat-label">最高相似度</div></div>
+                <div class="stat-item"><div class="stat-value">${ssAvgNight}%</div><div class="stat-label">SS 夜间活动</div></div>
+                <div class="stat-item"><div class="stat-value">${ssAvgDwell}h</div><div class="stat-label">SS 平均停留</div></div>
+            `;
+            document.getElementById('high-suspect-count').textContent = highSimCount;
+        }
+        
+        // 增强版 t-SNE 散点图 - 带交互功能
+        function drawTsneMap() {
+            const container = document.getElementById('chart-tsne');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const { width, height } = getActualChartSize(container);
+            
+            const ssIds = new Set(ssVessels.map(v => v.vessel_id));
+            const suspectIds = new Set(highSuspectVessels.map(v => v.vessel_id));
+            
+            // 收集所有点数据
+            pointsData = [];
+            for (const [vid, v] of Object.entries(vesselsMap)) {
+                if (v && v.tsne_x !== undefined && v.tsne_y !== undefined) {
+                    const isSS = ssIds.has(vid);
+                    const isSuspect = suspectIds.has(vid);
+                    pointsData.push({
+                        id: vid,
+                        name: v.vessel_name,
+                        company: v.company,
+                        x: v.tsne_x,
+                        y: v.tsne_y,
+                        isSS: isSS,
+                        isSuspect: isSuspect,
+                        night_ratio: v.night_ratio,
+                        night_fishing_ratio: v.night_fishing_ratio,
+                        avg_dwell_hours: v.avg_dwell_hours,
+                        protected_dwell_ratio: v.protected_dwell_ratio,
+                        similarity: similarVessels.find(s => s.vessel_id === vid)?.score || null
+                    });
+                }
+            }
+            
+            if (pointsData.length === 0) return;
+            
+            // 计算数据范围
+            const xExtent = d3.extent(pointsData, d => d.x);
+            const yExtent = d3.extent(pointsData, d => d.y);
+            const xRange = xExtent[1] - xExtent[0];
+            const yRange = yExtent[1] - yExtent[0];
+            const xPadding = xRange * 0.1;
+            const yPadding = yRange * 0.1;
+            
+            const xDomain = [xExtent[0] - xPadding, xExtent[1] + xPadding];
+            const yDomain = [yExtent[0] - yPadding, yExtent[1] + yPadding];
+            
+            // 创建 SVG
+            const svg = d3.select(container).append('svg')
+                .attr('width', width)
+                .attr('height', height)
+                .attr('viewBox', `0 0 ${width} ${height}`)
+                .style('cursor', 'grab');
+            
+            // 添加缩放/平移组
+            svgGroup = svg.append('g')
+                .attr('class', 'zoom-group')
+                .attr('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.k})`);
+            
+            // 定义缩放行为
+            const zoom = d3.zoom()
+                .scaleExtent([0.5, 8])
+                .on('zoom', (event) => {
+                    currentTransform = event.transform;
+                    svgGroup.attr('transform', `translate(${currentTransform.x}, ${currentTransform.y}) scale(${currentTransform.k})`);
+                });
+            
+            svg.call(zoom);
+            
+            // 定义 X/Y 缩放（用于映射数据坐标到屏幕坐标）
+            const xScale = d3.scaleLinear().domain(xDomain).range([50, width - 50]);
+            const yScale = d3.scaleLinear().domain(yDomain).range([height - 50, 50]);
+            
+            // 添加轴（在缩放组外，因为轴不应该缩放）
+            const xAxis = d3.axisBottom(xScale).ticks(6);
+            const yAxis = d3.axisLeft(yScale).ticks(6);
+            
+            svg.append('g')
+                .attr('class', 'x-axis')
+                .attr('transform', `translate(0, ${height - 45})`)
+                .call(xAxis)
+                .style('font-size', '10px');
+            
+            svg.append('g')
+                .attr('class', 'y-axis')
+                .attr('transform', `translate(45, 0)`)
+                .call(yAxis)
+                .style('font-size', '10px');
+            
+            svg.append('text')
+                .attr('x', width / 2)
+                .attr('y', height - 10)
+                .attr('text-anchor', 'middle')
+                .style('font-size', '11px')
+                .style('fill', '#64748b')
+                .text('t-SNE 维度 1');
+            
+            svg.append('text')
+                .attr('x', -height / 2)
+                .attr('y', 15)
+                .attr('text-anchor', 'middle')
+                .attr('transform', 'rotate(-90)')
+                .style('font-size', '11px')
+                .style('fill', '#64748b')
+                .text('t-SNE 维度 2');
+            
+            // 绘制普通渔船（灰色）
+            svgGroup.selectAll('.normal-point')
+                .data(pointsData.filter(p => !p.isSS && !p.isSuspect))
+                .enter().append('circle')
+                .attr('class', 'tsne-point normal-point')
+                .attr('cx', d => xScale(d.x))
+                .attr('cy', d => yScale(d.y))
+                .attr('r', 4)
+                .attr('fill', '#94a3b8')
+                .attr('stroke', 'none')
+                .attr('opacity', 0.4)
+                .on('mouseover', function(event, d) {
+                    d3.select(this).attr('r', 10).attr('stroke', '#333').attr('stroke-width', 1.5);
+                    tooltip.style('opacity', 1)
+                        .html(`
+                            <strong>${d.name}</strong><br>
+                            公司: ${d.company}<br>
+                            夜间活动: ${(d.night_ratio * 100).toFixed(0)}%<br>
+                            夜间捕鱼: ${(d.night_fishing_ratio * 100).toFixed(0)}%<br>
+                            停留时间: ${d.avg_dwell_hours.toFixed(1)}h
+                        `)
+                        .style('left', (event.pageX + 15) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseout', function() {
+                    d3.select(this).attr('r', 4).attr('stroke', 'none');
+                    tooltip.style('opacity', 0);
+                })
+                .on('click', function(event, d) {
+                    event.stopPropagation();
+                    showVesselInfo(d);
+                });
+            
+            // 绘制可疑船舶（紫色）- 增大尺寸突出显示
+            svgGroup.selectAll('.suspect-point')
+                .data(pointsData.filter(p => p.isSuspect && !p.isSS))
+                .enter().append('circle')
+                .attr('class', 'tsne-point suspect-point')
+                .attr('cx', d => xScale(d.x))
+                .attr('cy', d => yScale(d.y))
+                .attr('r', 8)
+                .attr('fill', '#8b5cf6')
+                .attr('stroke', '#c4b5fd')
+                .attr('stroke-width', 2)
+                .attr('opacity', 0.9)
+                .on('mouseover', function(event, d) {
+                    d3.select(this).attr('r', 14).attr('stroke-width', 3);
+                    tooltip.style('opacity', 1)
+                        .html(`
+                            <strong>⚠️ ${d.name}</strong><br>
+                            公司: ${d.company}<br>
+                            <strong style="color:#fbbf24">相似度: ${(d.similarity * 100).toFixed(1)}%</strong><br>
+                            夜间活动: ${(d.night_ratio * 100).toFixed(0)}%<br>
+                            夜间捕鱼: ${(d.night_fishing_ratio * 100).toFixed(0)}%<br>
+                            停留时间: ${d.avg_dwell_hours.toFixed(1)}h<br>
+                            保护区停留: ${(d.protected_dwell_ratio * 100).toFixed(0)}%
+                        `)
+                        .style('left', (event.pageX + 15) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseout', function() {
+                    d3.select(this).attr('r', 8).attr('stroke-width', 2);
+                    tooltip.style('opacity', 0);
+                })
+                .on('click', function(event, d) {
+                    event.stopPropagation();
+                    showVesselInfo(d);
+                });
+            
+            // 绘制 SouthSeafood（红色）- 最大最醒目
+            svgGroup.selectAll('.ss-point')
+                .data(pointsData.filter(p => p.isSS))
+                .enter().append('circle')
+                .attr('class', 'tsne-point ss-point')
+                .attr('cx', d => xScale(d.x))
+                .attr('cy', d => yScale(d.y))
+                .attr('r', 12)
+                .attr('fill', '#dc2626')
+                .attr('stroke', '#fca5a5')
+                .attr('stroke-width', 3)
+                .attr('opacity', 1)
+                .on('mouseover', function(event, d) {
+                    d3.select(this).attr('r', 16).attr('stroke-width', 4);
+                    tooltip.style('opacity', 1)
+                        .html(`
+                            <strong>🔥 ${d.name}</strong><br>
+                            公司: SouthSeafood Express Corp<br>
+                            <strong style="color:#fbbf24">非法捕鱼嫌疑船只</strong><br>
+                            夜间活动: ${(d.night_ratio * 100).toFixed(0)}%<br>
+                            夜间捕鱼: ${(d.night_fishing_ratio * 100).toFixed(0)}%<br>
+                            停留时间: ${d.avg_dwell_hours.toFixed(1)}h
+                        `)
+                        .style('left', (event.pageX + 15) + 'px')
+                        .style('top', (event.pageY - 10) + 'px');
+                })
+                .on('mouseout', function() {
+                    d3.select(this).attr('r', 12).attr('stroke-width', 3);
+                    tooltip.style('opacity', 0);
+                })
+                .on('click', function(event, d) {
+                    event.stopPropagation();
+                    showVesselInfo(d);
+                });
+            
+            // 添加标签（只为 SouthSeafood 添加）
+            svgGroup.selectAll('.ss-label')
+                .data(pointsData.filter(p => p.isSS))
+                .enter().append('text')
+                .attr('x', d => xScale(d.x) + 14)
+                .attr('y', d => yScale(d.y) + 5)
+                .style('font-size', '10px')
+                .style('font-weight', '700')
+                .style('fill', '#dc2626')
+                .style('pointer-events', 'none')
+                .text(d => d.name === 'Snapper Snatcher' ? 'Snapper' : 'Roach');
+            
+            // 图例
+            const legend = svg.append('g').attr('transform', `translate(${width - 140}, 15)`);
+            legend.append('circle').attr('cx', 8).attr('cy', 8).attr('r', 6).attr('fill', '#dc2626');
+            legend.append('text').attr('x', 20).attr('y', 11).style('font-size', '10px').text('SouthSeafood');
+            legend.append('circle').attr('cx', 8).attr('cy', 24).attr('r', 5).attr('fill', '#8b5cf6');
+            legend.append('text').attr('x', 20).attr('y', 27).style('font-size', '10px').text(`高度可疑 (≥${SIMILARITY_THRESHOLD*100}%)`);
+            legend.append('circle').attr('cx', 8).attr('cy', 40).attr('r', 3).attr('fill', '#94a3b8');
+            legend.append('text').attr('x', 20).attr('y', 43).style('font-size', '10px').text('普通渔船');
+            
+            // 更新点计数显示
+            document.getElementById('tsne-point-count').innerHTML = `📊 显示 ${pointsData.length} 艘船舶 | 可疑: ${pointsData.filter(p => p.isSuspect).length} 艘`;
+            
+            const closePoints = pointsData.filter(p => p.isSuspect && !p.isSS);
+            document.getElementById('insight-tsne').innerHTML = closePoints.length > 0 
+                ? `t-SNE 聚类显示，<strong>${closePoints.length} 艘可疑船舶</strong>（相似度 ≥${SIMILARITY_THRESHOLD*100}%）在行为空间上与 SouthSeafood 距离最近。其中 <strong>${closePoints[0].name}</strong> 距离最近。💡 悬停查看详情，拖拽框选区域。`
+                : 't-SNE 可视化展示了 296 艘渔船在 12 维行为空间中的聚类分布。💡 悬停查看船舶详情。';
+            
+            // 绑定控制按钮事件
+            setupControls(svg, zoom, width, height, xScale, yScale);
+        }
+        
+        // 显示船舶详细信息
+        function showVesselInfo(vessel) {
+            const infoPanel = document.getElementById('selected-info');
+            const nameSpan = document.getElementById('selected-vessel-name');
+            const detailSpan = document.getElementById('selected-vessel-detail');
+            
+            nameSpan.innerHTML = vessel.name;
+            const similarityText = vessel.similarity ? `相似度: ${(vessel.similarity * 100).toFixed(1)}%` : '';
+            detailSpan.innerHTML = `
+                公司: ${vessel.company}<br>
+                夜间活动: ${(vessel.night_ratio * 100).toFixed(0)}% | 
+                夜间捕鱼: ${(vessel.night_fishing_ratio * 100).toFixed(0)}%<br>
+                停留时间: ${vessel.avg_dwell_hours.toFixed(1)}h | 
+                保护区停留: ${(vessel.protected_dwell_ratio * 100).toFixed(0)}%
+                ${similarityText ? '<br>' + similarityText : ''}
+            `;
+            
+            infoPanel.classList.add('show');
+            
+            // 5秒后自动隐藏
+            setTimeout(() => {
+                infoPanel.classList.remove('show');
+            }, 5000);
+        }
+        
+        // 设置控制按钮
+        function setupControls(svg, zoom, width, height, xScale, yScale) {
+            document.getElementById('reset-view-btn').onclick = () => {
+                svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+            };
+            
+            document.getElementById('zoom-in-btn').onclick = () => {
+                svg.transition().duration(300).call(zoom.scaleBy, 1.3);
+            };
+            
+            document.getElementById('zoom-out-btn').onclick = () => {
+                svg.transition().duration(300).call(zoom.scaleBy, 0.7);
+            };
+            
+            document.getElementById('highlight-ss-btn').onclick = () => {
+                // 高亮 SouthSeafood 点
+                d3.selectAll('.ss-point').transition().duration(300)
+                    .attr('r', 18)
+                    .attr('stroke-width', 5);
+                d3.selectAll('.suspect-point, .normal-point').transition().duration(300)
+                    .attr('opacity', 0.3);
+                setTimeout(() => {
+                    d3.selectAll('.ss-point').transition().duration(300).attr('r', 12).attr('stroke-width', 3);
+                    d3.selectAll('.suspect-point, .normal-point').transition().duration(300).attr('opacity', 1);
+                }, 2000);
+            };
+            
+            document.getElementById('highlight-suspect-btn').onclick = () => {
+                d3.selectAll('.suspect-point').transition().duration(300)
+                    .attr('r', 14)
+                    .attr('stroke-width', 4);
+                d3.selectAll('.ss-point, .normal-point').transition().duration(300)
+                    .attr('opacity', 0.3);
+                setTimeout(() => {
+                    d3.selectAll('.suspect-point').transition().duration(300).attr('r', 8).attr('stroke-width', 2);
+                    d3.selectAll('.ss-point, .normal-point').transition().duration(300).attr('opacity', 1);
+                }, 2000);
+            };
+        }
+        
+        // 雷达图绘制
+        function drawRadarChart() {
+            const container = document.getElementById('chart-radar');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const { width, height } = getActualChartSize(container);
+            const size = Math.min(width, height) - 80;
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const radius = size / 2.2;
+            
+            const ssAvg = {};
+            RADAR_FEATURES.forEach(f => { ssAvg[f.key] = ssVessels.reduce((sum, v) => sum + (v[f.key] || 0), 0) / ssVessels.length; });
+            
+            const top3Ids = highSuspectVessels.slice(0, 3).map(v => v.vessel_id);
+            const top3Vessels = top3Ids.map(id => vesselsMap[id]).filter(v => v);
+            const top3Avg = {};
+            RADAR_FEATURES.forEach(f => { top3Avg[f.key] = top3Vessels.reduce((sum, v) => sum + (v[f.key] || 0), 0) / (top3Vessels.length || 1); });
+            
+            const ssIds = new Set(ssVessels.map(v => v.vessel_id));
+            const otherVessels = vesselIds.filter(id => !ssIds.has(id)).map(id => vesselsMap[id]).filter(v => v);
+            const fleetAvg = {};
+            RADAR_FEATURES.forEach(f => { fleetAvg[f.key] = otherVessels.reduce((sum, v) => sum + (v[f.key] || 0), 0) / (otherVessels.length || 1); });
+            
+            const maxValues = {};
+            RADAR_FEATURES.forEach(f => {
+                const allVals = [...ssVessels.map(v => v[f.key]), ...top3Vessels.map(v => v[f.key]), ...otherVessels.map(v => v[f.key])];
+                maxValues[f.key] = Math.max(...allVals, 0.01);
+            });
+            
+            const angleStep = (Math.PI * 2) / RADAR_FEATURES.length;
+            const svg = d3.select(container).append('svg')
+                .attr('width', width).attr('height', height)
+                .attr('viewBox', `0 0 ${width} ${height}`);
+            
+            [0.2, 0.4, 0.6, 0.8, 1.0].forEach(level => {
+                const points = RADAR_FEATURES.map((_, i) => {
+                    const angle = i * angleStep - Math.PI / 2;
+                    return [centerX + radius * level * Math.cos(angle), centerY + radius * level * Math.sin(angle)];
+                });
+                svg.append('path').attr('d', d3.line()([...points, points[0]])).attr('fill', 'none').attr('stroke', '#e2e8f0');
+            });
+            
+            RADAR_FEATURES.forEach((f, i) => {
+                const angle = i * angleStep - Math.PI / 2;
+                svg.append('line').attr('x1', centerX).attr('y1', centerY).attr('x2', centerX + radius * Math.cos(angle)).attr('y2', centerY + radius * Math.sin(angle)).attr('stroke', '#cbd5e1');
+                const x = centerX + (radius + 24) * Math.cos(angle);
+                const y = centerY + (radius + 14) * Math.sin(angle);
+                let anchor = "middle";
+                if (Math.cos(angle) > 0.1) anchor = "start";
+                else if (Math.cos(angle) < -0.1) anchor = "end";
+                svg.append('text').attr('x', x).attr('y', y).attr('text-anchor', anchor).attr('dominant-baseline', 'middle').style('font-size', '10px').style('fill', f.color).text(f.label);
+            });
+            
+            function drawPolygon(data, color, opacity, strokeWidth) {
+                const points = RADAR_FEATURES.map((f, i) => {
+                    const angle = i * angleStep - Math.PI / 2;
+                    const r = radius * Math.min(data[f.key] / maxValues[f.key], 1);
+                    return [centerX + r * Math.cos(angle), centerY + r * Math.sin(angle)];
+                });
+                svg.append('path').attr('d', d3.line()([...points, points[0]])).attr('fill', color).attr('fill-opacity', opacity).attr('stroke', color).attr('stroke-width', strokeWidth);
+            }
+            
+            drawPolygon(fleetAvg, '#3b82f6', 0.15, 1.5);
+            drawPolygon(top3Avg, '#8b5cf6', 0.25, 2);
+            drawPolygon(ssAvg, '#dc2626', 0.35, 2.5);
+            
+            const legend = svg.append('g').attr('transform', `translate(${width - 110}, 20)`);
+            legend.append('rect').attr('width', 12).attr('height', 12).attr('fill', '#dc2626').attr('rx', 2);
+            legend.append('text').attr('x', 18).attr('y', 10).style('font-size', '9px').text('SouthSeafood');
+            legend.append('rect').attr('width', 12).attr('height', 12).attr('y', 18).attr('fill', '#8b5cf6').attr('rx', 2);
+            legend.append('text').attr('x', 18).attr('y', 28).style('font-size', '9px').text(`Top 3 相似 (≥${SIMILARITY_THRESHOLD*100}%)`);
+            
+            const top3Names = top3Vessels.map(v => v.vessel_name).join(', ');
+            document.getElementById('insight-radar').innerHTML = `雷达图显示，Top 3 相似船舶（${top3Names || '无'}）的行为指纹与 SouthSeafood 高度重合。`;
+        }
+        
+        // 平行坐标图绘制
+        function drawParallelCoordinates() {
+            const container = document.getElementById('chart-parallel');
+            if (!container) return;
+            container.innerHTML = '';
+            
+            const { width, height } = getActualChartSize(container);
+            const margin = { top: 40, right: 110, bottom: 30, left: 50 };
+            const innerW = width - margin.left - margin.right;
+            const innerH = height - margin.top - margin.bottom;
+            
+            const ssIds = new Set(ssVessels.map(v => v.vessel_id));
+            const suspectIds = new Set(highSuspectVessels.map(v => v.vessel_id));
+            const vesselsData = vesselIds.map(id => vesselsMap[id]).filter(v => v);
+            
+            const domains = {};
+            PARALLEL_FEATURES.forEach(dim => {
+                const values = vesselsData.map(v => v[dim.key] || 0);
+                domains[dim.key] = [Math.min(...values, 0), Math.max(...values, 0.01)];
+            });
+            
+            const xScale = d3.scalePoint().domain(PARALLEL_FEATURES.map(d => d.label)).range([0, innerW]).padding(0.3);
+            const yScales = {};
+            PARALLEL_FEATURES.forEach(dim => { yScales[dim.key] = d3.scaleLinear().domain(domains[dim.key]).range([innerH, 0]); });
+            
+            const svg = d3.select(container).append('svg')
+                .attr('width', width).attr('height', height)
+                .attr('viewBox', `0 0 ${width} ${height}`)
+                .append('g').attr('transform', `translate(${margin.left},${margin.top})`);
+            
+            // 其他船舶
+            vesselsData.forEach(v => {
+                const isSS = ssIds.has(v.vessel_id);
+                const isSuspect = suspectIds.has(v.vessel_id);
+                if (isSS || isSuspect) return;
+                const points = PARALLEL_FEATURES.map(dim => ({ x: xScale(dim.label), y: yScales[dim.key](v[dim.key] || 0) }));
+                svg.append('path').attr('d', d3.line().x(d => d.x).y(d => d.y)(points)).attr('fill', 'none')
+                    .attr('stroke', '#cbd5e1').attr('stroke-width', 0.5).attr('stroke-opacity', 0.2);
+            });
+            
+            // 可疑船舶
+            vesselsData.forEach(v => {
+                const isSuspect = suspectIds.has(v.vessel_id);
+                if (!isSuspect) return;
+                const points = PARALLEL_FEATURES.map(dim => ({ x: xScale(dim.label), y: yScales[dim.key](v[dim.key] || 0) }));
+                svg.append('path').attr('d', d3.line().x(d => d.x).y(d => d.y)(points)).attr('fill', 'none')
+                    .attr('stroke', '#8b5cf6').attr('stroke-width', 1.5).attr('stroke-opacity', 0.8);
+            });
+            
+            // SouthSeafood
+            vesselsData.forEach(v => {
+                const isSS = ssIds.has(v.vessel_id);
+                if (!isSS) return;
+                const points = PARALLEL_FEATURES.map(dim => ({ x: xScale(dim.label), y: yScales[dim.key](v[dim.key] || 0) }));
+                svg.append('path').attr('d', d3.line().x(d => d.x).y(d => d.y)(points)).attr('fill', 'none')
+                    .attr('stroke', '#dc2626').attr('stroke-width', 2.5).attr('stroke-opacity', 1);
+            });
+            
+            PARALLEL_FEATURES.forEach(dim => {
+                const x = xScale(dim.label);
+                svg.append('g').attr('transform', `translate(${x},0)`).call(d3.axisLeft(yScales[dim.key]).ticks(4).tickFormat(d => dim.format(d)));
+                svg.append('text').attr('x', x).attr('y', -12).attr('text-anchor', 'middle').style('font-size', '9px').style('font-weight', '600').style('fill', dim.color).text(dim.label);
+            });
+            
+            const legend = svg.append('g').attr('transform', `translate(${innerW + 15}, 10)`);
+            legend.append('line').attr('x1', 0).attr('x2', 20).attr('y1', 5).attr('y2', 5).attr('stroke', '#dc2626').attr('stroke-width', 2.5);
+            legend.append('text').attr('x', 25).attr('y', 8).style('font-size', '9px').text('SouthSeafood');
+            legend.append('line').attr('x1', 0).attr('x2', 20).attr('y1', 20).attr('y2', 20).attr('stroke', '#8b5cf6').attr('stroke-width', 1.5);
+            legend.append('text').attr('x', 25).attr('y', 23).style('font-size', '9px').text(`可疑船舶 (≥${SIMILARITY_THRESHOLD*100}%)`);
+        }
+        
+        // 可疑船舶详细清单
+        function drawSuspectTable() {
+            const container = document.getElementById('suspect-table');
+            if (!container) return;
+            
+            if (highSuspectVessels.length === 0) {
+                container.innerHTML = `<p style="text-align:center;padding:40px;">无相似度 ≥${SIMILARITY_THRESHOLD*100}% 的可疑船舶</p>`;
+                document.getElementById('insight-action').innerHTML = `当前没有发现相似度 ≥${SIMILARITY_THRESHOLD*100}% 的高度可疑船舶。`;
+                return;
+            }
+            
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.innerHTML = `
+                <thead>
+                    <tr style="background:#f1f5f9;position:sticky;top:0;">
+                        <th style="text-align:left;padding:12px 8px;">船名</th>
+                        <th style="padding:12px 8px;">相似度</th>
+                        <th style="padding:12px 8px;">公司</th>
+                        <th style="padding:12px 8px;">夜间活动</th>
+                        <th style="padding:12px 8px;">夜间捕鱼</th>
+                        <th style="padding:12px 8px;">停留时间</th>
+                        <th style="padding:12px 8px;">保护区停留</th>
+                        <th style="padding:12px 8px;">捕鱼强度</th>
+                        <th style="padding:12px 8px;">入侵频率</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${highSuspectVessels.map(v => {
+                        const vessel = vesselsMap[v.vessel_id];
+                        return `
+                            <tr style="border-bottom:1px solid #e2e8f0;background:#faf5ff;">
+                                <td style="text-align:left;font-weight:600;color:#8b5cf6;padding:10px 8px;">${v.vessel_name}</td>
+                                <td style="text-align:center;color:#dc2626;font-weight:700;padding:10px 8px;">${(v.score * 100).toFixed(1)}%</td>
+                                <td style="text-align:center;font-size:10px;padding:10px 8px;">${v.company || '未知'}</td>
+                                <td style="text-align:center;padding:10px 8px;">${((vessel?.night_ratio || 0) * 100).toFixed(0)}%</td>
+                                <td style="text-align:center;padding:10px 8px;">${((vessel?.night_fishing_ratio || 0) * 100).toFixed(0)}%</td>
+                                <td style="text-align:center;padding:10px 8px;">${(vessel?.avg_dwell_hours || 0).toFixed(1)}h</td>
+                                <td style="text-align:center;padding:10px 8px;">${((vessel?.protected_dwell_ratio || 0) * 100).toFixed(0)}%</td>
+                                <td style="text-align:center;padding:10px 8px;">${(vessel?.fishing_intensity || 0).toFixed(1)}次/天</td>
+                                <td style="text-align:center;padding:10px 8px;">${(vessel?.intrusion_frequency || 0).toFixed(2)}次/天</td>
+                            </tr>
+                        `;
+                    }).join('')}
+                </tbody>
+            `;
+            container.innerHTML = '';
+            container.appendChild(table);
+            
+            const top3Names = highSuspectVessels.slice(0, 3).map(v => v.vessel_name).join('、');
+            document.getElementById('insight-action').innerHTML = `发现 <strong>${highSuspectVessels.length} 艘</strong>相似度 ≥${SIMILARITY_THRESHOLD*100}% 的高度可疑船舶。建议优先调查 <strong>${top3Names}</strong>。`;
+        }
+        
+        init();
+    })();
+    </script>
+</body>
+</html>

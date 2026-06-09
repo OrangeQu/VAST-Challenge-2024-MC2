@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Oceanus 非法渔业调查系统 | FishEye Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles/main.css" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="scripts/frontend/viz-utils.js"></script>
+  <script src="scripts/frontend/timeline.js" defer></script>
+  <script src="scripts/frontend/dashboard.js" defer></script>
+</head>
+<body class="app-body">
+  <!-- ===== 顶部导航栏 ===== -->
+  <nav class="nav-bar glass-nav">
+    <a href="index.html" class="nav-brand">
+      <div class="logo">FE</div>
+      <span>FishEye Analytics</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="index.html" class="active">调查工作台</a></li>
+      <li><a href="pages/q1.html">船货关联</a></li>
+      <li><a href="pages/q2.html">违规画像</a></li>
+      <li><a href="pages/q3.html">相似扩展</a></li>
+      <li><a href="pages/q4.html">前后变化</a></li>
+    </ul>
+  </nav>
+
+  <button id="nav-toggle" class="nav-toggle" type="button" aria-label="隐藏导航" aria-expanded="true">隐藏导航</button>
+
+  <main class="main-content">
+    <div class="container">
+
+      <!-- ===== 顶部控制栏 ===== -->
+      <section class="top-bar glass-panel" id="top-bar">
+        <div class="top-bar-left">
+          <div class="top-bar-title">Oceanus 非法渔业调查系统</div>
+          <div class="top-bar-badge">VAST Challenge 2024 · MC2</div>
+        </div>
+        <div class="top-bar-center">
+          <div class="top-control-group">
+            <label>📅 时间区间</label>
+            <div class="time-range-row">
+              <button class="segmented active" data-time="all">全部</button>
+              <button class="segmented" data-time="pre">曝光前</button>
+              <button class="segmented" data-time="post">曝光后</button>
+              <span class="time-range-sep">从</span>
+              <input type="date" id="time-start" class="time-input">
+              <span class="time-range-sep">到</span>
+              <input type="date" id="time-end" class="time-input">
+            </div>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="btn btn-small" id="export-btn">📥 导出</button>
+        </div>
+      </section>
+
+      <!-- ===== 图例横条（复旦风格） ===== -->
+      <section class="legend-bar glass-panel" id="legend-bar">
+        <div class="legend-bar-inner">
+          <span class="legend-bar-title">📖 图例</span>
+          <div class="legend-bar-group">
+            <span class="legend-group-label">📍 位置</span>
+            <span class="legend-item"><span class="ld" style="background:#ef4444"></span>保护区</span>
+            <span class="legend-item"><span class="ld" style="background:#f59e0b"></span>渔区</span>
+            <span class="legend-item"><span class="ld" style="background:#3b82f6"></span>港口</span>
+            <span class="legend-item"><span class="ld" style="background:#94a3b8"></span>导航点</span>
+            <span class="legend-item"><span class="ld" style="background:#10b981"></span>其他</span>
+          </div>
+          <div class="legend-bar-group">
+            <span class="legend-group-label">🚢 船舶类型</span>
+            <span class="legend-item"><span class="ld" style="background:#3b82f6"></span>渔船</span>
+            <span class="legend-item"><span class="ld" style="background:#f97316"></span>货船</span>
+            <span class="legend-item"><span class="ld" style="background:#8b5cf6"></span>旅游/渡轮</span>
+            <span class="legend-item"><span class="ld" style="background:#10b981"></span>科研船</span>
+            <span class="legend-item"><span class="ld" style="background:#e11d48"></span>SouthSeafood</span>
+          </div>
+          <div class="legend-bar-group">
+            <span class="legend-group-label">📊 统计</span>
+            <span class="legend-item"><span class="ld" style="background:#e11d48"></span>主船</span>
+            <span class="legend-item"><span class="ld" style="background:#0ea5e9"></span>选中平均</span>
+            <span class="legend-item"><span class="ld" style="background:#94a3b8"></span>全局基线</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 筛选器横条（复旦风格：放在图例下方） ===== -->
+      <section class="filter-bar glass-panel" id="filter-bar">
+        <div class="filter-bar-inner">
+          <div class="filter-group">
+            <label>🚢 船舶筛选</label>
+            <select id="vessel-select" class="filter-select"></select>
+          </div>
+          <div class="filter-group">
+            <label>📍 地点筛选</label>
+            <select id="location-select" class="filter-select">
+              <option value="all">全部位置</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>📦 商品筛选</label>
+            <select id="commodity-select" class="filter-select">
+              <option value="all">全部商品</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>⚙️ 快速过滤</label>
+            <div class="filter-checkboxes">
+              <label class="filter-toggle"><input type="checkbox" id="filter-seed-only"> 仅种子船</label>
+              <label class="filter-toggle"><input type="checkbox" id="filter-protected"> 仅保护区</label>
+              <label class="filter-toggle"><input type="checkbox" id="filter-night"> 仅夜间</label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== 三栏主体布局 ===== -->
+      <div class="three-col-layout">
+
+        <!-- ===== 左侧栏：聚类 + 地图 ===== -->
+        <aside class="left-sidebar" id="left-sidebar">
+          <div class="zone-card zone-cluster" id="zone-cluster">
+            <div class="zone-title">
+              <span class="zone-badge">🔬</span> 聚类分析
+              <span class="zone-subtitle">t-SNE 降维</span>
+            </div>
+            <div class="zone-content" id="cluster-viz">
+              <div class="loading">计算聚类...</div>
+            </div>
+          </div>
+          <div class="zone-card zone-map" id="zone-map">
+            <div class="zone-title">
+              <span class="zone-badge">🗺</span> 地图视图
+              <span class="zone-subtitle">空间轨迹</span>
+              <div class="zone-controls">
+                <button class="zone-btn active" id="map-mode-single">单船</button>
+                <button class="zone-btn" id="map-mode-multi">多船</button>
+              </div>
+            </div>
+            <div class="zone-content" id="map-viz">
+              <div class="loading">加载地图数据...</div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- ===== 中间主区域：时间轴 ===== -->
+        <div class="center-main">
+          <div class="zone-card zone-timeline" id="zone-timeline">
+            <div class="zone-title">
+              <span class="zone-badge">⏱</span> 时间轴视图
+              <span class="zone-subtitle">行为演化 · 位置/报告/交易联动</span>
+              <div class="zone-controls"></div>
+            </div>
+            <div class="zone-content" id="timeline-viz">
+              <div class="loading">加载时间线数据...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== 右侧栏：证据链 ===== -->
+        <aside class="right-sidebar" id="right-sidebar">
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">📋 船舶档案</div>
+            <div id="vessel-profile" class="profile-mini">
+              <div class="loading">选择船舶后显示</div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">📊 行为雷达</div>
+            <div id="radar-viz" class="radar-mini">
+              <div class="loading">选择船舶后显示</div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">🔗 证据链</div>
+            <div id="evidence-panel" class="evidence-mini">
+              <div class="loading">选择船舶后显示</div>
+            </div>
+          </div>
+          <div class="sidebar-section">
+            <div class="sidebar-section-title">🎯 相似船排名</div>
+            <div id="similar-vessels" class="similar-mini">
+              <div class="loading">选择船舶后显示</div>
+            </div>
+          </div>
+        </aside>
+
+      </div>
+
+      <!-- ===== 底部统计对比 ===== -->
+      <section class="bottom-stats glass-panel" id="bottom-stats">
+        <div class="bottom-stats-header">
+          <span class="zone-badge">📊</span> 统计对比
+          <span class="zone-subtitle">主船 vs 选中船群 vs 全局基线</span>
+        </div>
+        <div class="bottom-stats-content" id="stats-compare">
+          <div class="loading">加载对比数据...</div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</body>
+</html>

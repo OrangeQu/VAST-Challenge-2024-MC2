@@ -37,7 +37,7 @@ const STATE = {
   // 时间范围（实际过滤用）
   timeRange: null, // { start: Date, end: Date }
   // 曝光日期（用于时间预设）
-  exposureDate: new Date('2035-10-01'),
+  exposureDate: new Date('2035-08-01'),
   // 自定义时间区间
   customTimeStart: null, // Date
   customTimeEnd: null,   // Date
@@ -49,6 +49,19 @@ const STATE = {
 function fmt(v) { return formatNumber(v); }
 function fmtPct(v) { return (v * 100).toFixed(1) + '%'; }
 function fmtHour(v) { return v.toFixed(1) + 'h'; }
+function coordLon(coord) { return Array.isArray(coord) ? coord[0] : coord?.lon; }
+function coordLat(coord) { return Array.isArray(coord) ? coord[1] : coord?.lat; }
+function pingLon(ping) { return ping?.lon ?? coordLon(STATE.locationCoords?.[ping?.location]); }
+function pingLat(ping) { return ping?.lat ?? coordLat(STATE.locationCoords?.[ping?.location]); }
+function pingDwellHours(ping) {
+  if (!ping) return 0;
+  if (Number.isFinite(ping.dwell_hours)) return ping.dwell_hours;
+  if (Number.isFinite(ping.dwell_seconds)) return ping.dwell_seconds / 3600;
+  return Number.isFinite(ping.dwell) ? ping.dwell : 0;
+}
+function isValidPingCoord(ping) {
+  return Number.isFinite(pingLon(ping)) && Number.isFinite(pingLat(ping));
+}
 
 function calcRisk(v) {
   if (!v) return 0;
@@ -344,12 +357,12 @@ function drawSingleTrajectory(g, x, y) {
       ) || 'Himark';
       const coord = STATE.locationCoords[loc];
       if (coord) {
-        g.append('circle').attr('cx', x(coord[0])).attr('cy', y(coord[1]))
+        g.append('circle').attr('cx', x(coordLon(coord))).attr('cy', y(coordLat(coord)))
           .attr('r', 5 + Math.min(count, 10)).attr('fill', '#e11d48')
           .attr('opacity', .7).attr('stroke', '#fff').attr('stroke-width', 1.2)
           .style('cursor', 'pointer')
           .append('title').text(loc + ' (' + count + '次)');
-        g.append('text').attr('x', x(coord[0]) + 8).attr('y', y(coord[1]) - 8)
+        g.append('text').attr('x', x(coordLon(coord)) + 8).attr('y', y(coordLat(coord)) - 8)
           .style('font-size', '8px').style('fill', '#e11d48').style('font-weight', '600')
           .text(loc + ' (' + count + ')');
       }
@@ -359,31 +372,33 @@ function drawSingleTrajectory(g, x, y) {
 
   const isSeed = STATE.seedIds.has(vessel.vessel_id);
   const lineColor = isSeed ? '#e11d48' : '#0ea5e9';
-  const lineGen = d3.line().x(d => x(d.lon)).y(d => y(d.lat)).curve(d3.curveCatmullRom);
+  const validPings = pings.filter(isValidPingCoord);
+  if (validPings.length === 0) return;
+  const lineGen = d3.line().x(d => x(pingLon(d))).y(d => y(pingLat(d))).curve(d3.curveCatmullRom);
 
   // 轨迹线（可点击）
-  const path = g.append('path').datum(pings).attr('fill', 'none').attr('stroke', lineColor)
+  const path = g.append('path').datum(validPings).attr('fill', 'none').attr('stroke', lineColor)
     .attr('stroke-width', 1).attr('opacity', .85).attr('d', lineGen)
     .style('cursor', 'pointer');
   path.append('title').text(vessel.vessel_name + ' · ' + pings.length + ' 个定位点');
 
   // 停留点（可点击）
-  const dwellPings = pings.filter(p => (p.dwell || 0) > 0);
+  const dwellPings = validPings.filter(p => pingDwellHours(p) > 0);
   g.selectAll('.dwell-point').data(dwellPings).enter().append('circle')
     .attr('class', 'dwell-point')
-    .attr('cx', d => x(d.lon)).attr('cy', d => y(d.lat))
-    .attr('r', d => Math.min(8, 2 + (d.dwell || 0) * 0.5))
+    .attr('cx', d => x(pingLon(d))).attr('cy', d => y(pingLat(d)))
+    .attr('r', d => Math.min(8, 2 + pingDwellHours(d) * 0.5))
     .attr('fill', d => d.loc_type === 'protected' ? '#ef4444' : '#f59e0b')
     .attr('opacity', .7).attr('stroke', '#fff').attr('stroke-width', 1.2)
     .style('cursor', 'pointer')
-    .append('title').text(d => d.location + ' · 停留 ' + d.dwell.toFixed(1) + 'h · ' + d.time);
+    .append('title').text(d => d.location + ' · 停留 ' + pingDwellHours(d).toFixed(1) + 'h · ' + d.time);
 
-  if (pings.length > 0) {
-    const first = pings[0], last = pings[pings.length - 1];
-    g.append('circle').attr('cx', x(first.lon)).attr('cy', y(first.lat))
+  if (validPings.length > 0) {
+    const first = validPings[0], last = validPings[validPings.length - 1];
+    g.append('circle').attr('cx', x(pingLon(first))).attr('cy', y(pingLat(first)))
       .attr('r', 5).attr('fill', '#22c55e').attr('stroke', '#fff').attr('stroke-width', 2)
       .append('title').text('起点: ' + first.time);
-    g.append('circle').attr('cx', x(last.lon)).attr('cy', y(last.lat))
+    g.append('circle').attr('cx', x(pingLon(last))).attr('cy', y(pingLat(last)))
       .attr('r', 5).attr('fill', '#ef4444').attr('stroke', '#fff').attr('stroke-width', 2)
       .append('title').text('终点: ' + last.time);
   }
@@ -397,8 +412,10 @@ function drawMultiTrajectory(g, x, y) {
     if (!vessel) return;
     const pings = getFilteredPings(id);
     if (!pings || pings.length === 0) return;
-    const lineGen = d3.line().x(d => x(d.lon)).y(d => y(d.lat)).curve(d3.curveCatmullRom);
-    g.append('path').datum(pings).attr('fill', 'none').attr('stroke', color(i))
+    const validPings = pings.filter(isValidPingCoord);
+    if (validPings.length === 0) return;
+    const lineGen = d3.line().x(d => x(pingLon(d))).y(d => y(pingLat(d))).curve(d3.curveCatmullRom);
+    g.append('path').datum(validPings).attr('fill', 'none').attr('stroke', color(i))
       .attr('stroke-width', 1.2).attr('opacity', .7).attr('d', lineGen)
       .style('cursor', 'pointer')
       .append('title').text(vessel.vessel_name);

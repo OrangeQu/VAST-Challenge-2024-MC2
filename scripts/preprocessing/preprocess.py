@@ -318,6 +318,80 @@ for feat in all_geo_features:
 
 print(f"  位置坐标: {len(location_coords)} 个")
 
+# 4.3 构建前端地图可直接使用的地理分层
+protected_area_features: List[Dict[str, Any]] = []
+fishing_ground_features: List[Dict[str, Any]] = []
+city_features: List[Dict[str, Any]] = []
+island_features: List[Dict[str, Any]] = []
+buoy_features: List[Dict[str, Any]] = []
+
+for feat in all_geo_features:
+    name = feat.get("name", "")
+    ftype = str(feat.get("type", ""))
+    kind = str(feat.get("kind", ""))
+    geom_type = feat.get("geometry_type")
+    coords = feat.get("coordinates")
+    if not name or not coords:
+        continue
+
+    geo_item = {
+        "name": name,
+        "description": feat.get("description"),
+        "type": ftype,
+        "kind": kind,
+        "geometry_type": geom_type,
+        "coordinates": coords,
+    }
+
+    if name in preserve_names or "Preserve" in name or "Reef" in name:
+        protected_area_features.append(geo_item)
+    elif name in fishing_grounds or "Fishing" in ftype or "Ground" in name:
+        fishing_ground_features.append(geo_item)
+    elif name in cities or "City" in ftype:
+        city_features.append(geo_item)
+    elif "Island" in ftype or "Island" in name:
+        island_features.append(geo_item)
+    elif "Buoy" in ftype or "Buoy" in name:
+        buoy_features.append(geo_item)
+
+# 去重，避免同一要素因规则重复进入图层
+def dedupe_features(items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    seen = set()
+    result = []
+    for item in items:
+        name = item.get("name")
+        if name in seen:
+            continue
+        seen.add(name)
+        result.append(item)
+    return result
+
+protected_area_features = dedupe_features(protected_area_features)
+fishing_ground_features = dedupe_features(fishing_ground_features)
+city_features = dedupe_features(city_features)
+island_features = dedupe_features(island_features)
+buoy_features = dedupe_features(buoy_features)
+
+# 4.4 位置分类工具，供轨迹和风险解释使用
+def classify_location(loc: str) -> str:
+    if loc in preserve_names:
+        return "protected"
+    if loc in fishing_grounds:
+        return "fishing"
+    if loc in cities:
+        return "city"
+    if "Buoy" in loc:
+        return "buoy"
+    coord = location_coords.get(loc)
+    if coord:
+        lon = coord.get("lon")
+        lat = coord.get("lat")
+        if lon is not None and lat is not None:
+            for _pname, ppoly in preserves.items():
+                if point_in_polygon(lon, lat, ppoly):
+                    return "protected"
+    return "other"
+
 # ------------------------------------------------------------------
 # 5) 构建船舶移动指标
 # ------------------------------------------------------------------
@@ -518,13 +592,21 @@ for vnode in vessel_nodes:
         "transitions": transitions,
     })
 
-    # 构建移动轨迹
+    # 构建移动轨迹：前端地图需要 lon/lat，dwell 同时保留秒和小时
     movement_pings = []
     for ping in pings_sorted:
+        loc = ping.get("location", "")
+        coord = location_coords.get(loc, {})
+        dwell_seconds = ping.get("dwell", 0) or 0
         movement_pings.append({
             "time": ping.get("time"),
-            "dwell": ping.get("dwell", 0),
-            "location": ping.get("location", ""),
+            "dwell": dwell_seconds / 3600,  # 兼容旧前端：dwell 表示小时
+            "dwell_seconds": dwell_seconds,
+            "dwell_hours": dwell_seconds / 3600,
+            "location": loc,
+            "lon": coord.get("lon"),
+            "lat": coord.get("lat"),
+            "loc_type": classify_location(loc),
         })
     vessel_movements[vid] = {"name": vname, "pings": movement_pings}
 
@@ -651,23 +733,117 @@ commodities = sorted(set(
     if dr.get("fish_name")
 ))
 
-# 构建 delivery_vessel_links（DeliveryReport 与船舶的关联）
-# 先建立 Transaction 链接的索引：source -> [targets]
-transaction_links: Dict[str, List[str]] = defaultdict(list)
-for link in links:
-    if "Event.Transaction" not in str(link.get("type", "")):
-        continue
-    src = link.get("source", "")
-    tgt = link.get("target", "")
-    if src and tgt:
-        transaction_links[src].append(tgt)
-        transaction_links[tgt].append(src)
+# 构建 delivery_vessel_links（DeliveryReport 与船舶的概率关联）
+# 原始数据没有 DeliveryReport -> Vessel 的直接边，因此基于“同港口 + 相近日期 + 停留时长 + 渔船类型”生成候选匹配。
+city_id_to_name: Dict[str, str] = {}
+for n in nodes:
+    nid = normalize_name(n.get("id"))
+    nname = normalize_name(n.get("name") or n.get("Name") or nid)
+    ntype = str(n.get("type", ""))
+    if nid and ("City" in nid or "City" in ntype or "City" in nname):
+        city_id_to_name[nid] = nname
 
-# 从 Transaction 链接中找出与 DeliveryReport 关联的 vessel
-# 每个 DeliveryReport 有 2 条 Transaction 链接（指向 Fish 和 City）
-# 没有直接指向 Vessel 的链接，所以 delivery_vessel_links 为空列表
-# 前端使用 delivery_reports 中的 fish_name/city_id 做商品关联分析
-delivery_vessel_links = []
+# 港口报告按港口聚合，便于快速找候选船
+port_harbor_reports: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+for hr in all_harbor_reports:
+    port_harbor_reports[hr.get("port", "")].append(hr)
+
+# ping 按位置聚合，作为 HarborReport 缺失时的补充证据
+location_ping_reports: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+for ping in all_pings:
+    location_ping_reports[ping.get("location", "")].append(ping)
+
+vessel_info_by_id = {v["vessel_id"]: v for v in vessels_data}
+
+def parse_date(value: Any) -> datetime | None:
+    if not value:
+        return None
+    try:
+        return datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+    except Exception:
+        try:
+            return datetime.strptime(str(value)[:10], "%Y-%m-%d")
+        except Exception:
+            return None
+
+def date_gap_days(a: Any, b: Any) -> float | None:
+    da = parse_date(a)
+    db = parse_date(b)
+    if not da or not db:
+        return None
+    return abs((da.date() - db.date()).days)
+
+MAX_MATCH_WINDOW_DAYS = 3
+delivery_vessel_links: List[Dict[str, Any]] = []
+for dr in clean_delivery_reports:
+    city_id = dr.get("city_id")
+    location = city_id_to_name.get(city_id, city_id or "")
+    dr_date = dr.get("date")
+    candidates: Dict[str, Dict[str, Any]] = {}
+
+    # 1) HarborReport 候选：同港口，日期接近
+    for hr in port_harbor_reports.get(location, []) + port_harbor_reports.get(city_id or "", []):
+        vid = hr.get("vessel_id")
+        if not vid or vid not in vessel_info_by_id:
+            continue
+        gap = date_gap_days(dr_date, hr.get("date"))
+        if gap is None or gap > MAX_MATCH_WINDOW_DAYS:
+            continue
+        vinfo = vessel_info_by_id[vid]
+        type_bonus = 0.18 if "Fishing" in str(vinfo.get("vessel_type", "")) else 0.0
+        score = max(0.0, 1 - gap / (MAX_MATCH_WINDOW_DAYS + 1)) * 0.65 + type_bonus + 0.12
+        candidates[vid] = {
+            "vessel_id": vid,
+            "vessel_name": vinfo.get("vessel_name"),
+            "company": vinfo.get("company"),
+            "vessel_type": vinfo.get("vessel_type"),
+            "score": score,
+            "time_gap_days": gap,
+            "evidence": "harbor_report_same_port",
+        }
+
+    # 2) Ping 候选：同位置，日期接近，按停留时长补充分数
+    for ping in location_ping_reports.get(location, []) + location_ping_reports.get(city_id or "", []):
+        vid = ping.get("vessel_id")
+        if not vid or vid not in vessel_info_by_id:
+            continue
+        gap = date_gap_days(dr_date, ping.get("time"))
+        if gap is None or gap > MAX_MATCH_WINDOW_DAYS:
+            continue
+        vinfo = vessel_info_by_id[vid]
+        dwell_hours = (ping.get("dwell", 0) or 0) / 3600
+        dwell_bonus = min(0.2, dwell_hours / 24 * 0.2)
+        type_bonus = 0.18 if "Fishing" in str(vinfo.get("vessel_type", "")) else 0.0
+        score = max(0.0, 1 - gap / (MAX_MATCH_WINDOW_DAYS + 1)) * 0.55 + dwell_bonus + type_bonus
+        old = candidates.get(vid)
+        if not old or score > old["score"]:
+            candidates[vid] = {
+                "vessel_id": vid,
+                "vessel_name": vinfo.get("vessel_name"),
+                "company": vinfo.get("company"),
+                "vessel_type": vinfo.get("vessel_type"),
+                "score": score,
+                "time_gap_days": gap,
+                "dwell_hours": dwell_hours,
+                "evidence": "transponder_ping_same_location",
+            }
+
+    candidate_list = sorted(candidates.values(), key=lambda x: x["score"], reverse=True)[:5]
+    best = candidate_list[0] if candidate_list else None
+    delivery_vessel_links.append({
+        "delivery_id": dr.get("id"),
+        "date": dr_date,
+        "location": location,
+        "city_id": city_id,
+        "fish_id": dr.get("fish_id"),
+        "fish_name": dr.get("fish_name"),
+        "qty_tons": dr.get("qty_tons"),
+        "candidate_vessels": [dict(c, score=round(c.get("score", 0), 4)) for c in candidate_list],
+        "best_match_vessel": best.get("vessel_name") if best else None,
+        "best_match_vessel_id": best.get("vessel_id") if best else None,
+        "match_score": round(best.get("score", 0), 4) if best else 0,
+        "match_evidence": best.get("evidence") if best else None,
+    })
 
 processed_data = {
     "description": "VAST Challenge 2024 MC2 — 完整预处理数据",
@@ -703,6 +879,11 @@ report_path = os.path.join(OUTPUT_DIR, "preprocess_report.json")
 save_json(processed_path, processed_data)
 save_json(movements_path, vessel_movements)
 save_json(geography_path, {
+    "protected_areas": protected_area_features,
+    "fishing_grounds": fishing_ground_features,
+    "cities": city_features,
+    "islands": island_features,
+    "buoys": buoy_features,
     "features": all_geo_features,
     "location_coords": location_coords,
 })

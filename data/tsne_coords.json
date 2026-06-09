@@ -1,0 +1,2370 @@
+[
+  {
+    "vessel_id": "wavewranglerc2d",
+    "name": "Wave Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.064994,
+    "y": -14.1451
+  },
+  {
+    "vessel_id": "yellowfintunataker08b",
+    "name": "Yellowfin Tuna Taker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -4.817486,
+    "y": -12.225562
+  },
+  {
+    "vessel_id": "webigailba7",
+    "name": "Webigail",
+    "type": "Entity.Vessel.Other",
+    "is_seed": false,
+    "x": 3.496737,
+    "y": -18.316906
+  },
+  {
+    "vessel_id": "arcticgraylingangler094",
+    "name": "Arctic Grayling Angler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.405161,
+    "y": -13.243107
+  },
+  {
+    "vessel_id": "anchovyassaulterb1c",
+    "name": "Anchovy Assaulter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -5.223106,
+    "y": -11.747192
+  },
+  {
+    "vessel_id": "oceanreaper44a",
+    "name": "Ocean Reaper",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.650188,
+    "y": -17.162619
+  },
+  {
+    "vessel_id": "herringharpooner843",
+    "name": "Herring Harpooner",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -4.440793,
+    "y": -11.684526
+  },
+  {
+    "vessel_id": "halibuthunterd84",
+    "name": "Halibut Hunter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.055091,
+    "y": -2.611825
+  },
+  {
+    "vessel_id": "brooktroutbuccaneerc0b",
+    "name": "Brook Trout Buccaneer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.940035,
+    "y": -14.981118
+  },
+  {
+    "vessel_id": "venerable89c",
+    "name": "Venerable",
+    "type": "Entity.Vessel.Ferry.Passenger",
+    "is_seed": false,
+    "x": -3.973923,
+    "y": -15.65835
+  },
+  {
+    "vessel_id": "groupergrabber60d",
+    "name": "Grouper Grabber",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 9.177032,
+    "y": -18.754997
+  },
+  {
+    "vessel_id": "welscatfishwrangler6ae",
+    "name": "Wels Catfish Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -4.335587,
+    "y": -10.687629
+  },
+  {
+    "vessel_id": "skipjacktunatakerf85",
+    "name": "Skipjack Tuna Taker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -3.689075,
+    "y": -9.987138
+  },
+  {
+    "vessel_id": "seawaysavvy9847",
+    "name": "Seaway Savvy 9",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.1872,
+    "y": 27.420156
+  },
+  {
+    "vessel_id": "pacificcodcapturer81c",
+    "name": "Pacific Cod Capturer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -4.499317,
+    "y": -11.269813
+  },
+  {
+    "vessel_id": "bluefishbandit8ec",
+    "name": "Bluefish Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -5.457679,
+    "y": -11.390479
+  },
+  {
+    "vessel_id": "maritimemaelstromc5d",
+    "name": "Maritime Maelstrom",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -10.362871,
+    "y": 26.002659
+  },
+  {
+    "vessel_id": "europeanperchpirated9b",
+    "name": "European Perch Pirate",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -5.21142,
+    "y": -12.594861
+  },
+  {
+    "vessel_id": "whitefishwrangler7df",
+    "name": "Whitefish Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -0.708887,
+    "y": -12.650085
+  },
+  {
+    "vessel_id": "sturdyd7f",
+    "name": "Sturdy",
+    "type": "Entity.Vessel.Ferry.Cargo",
+    "is_seed": false,
+    "x": 1.707433,
+    "y": 0.995901
+  },
+  {
+    "vessel_id": "longfintunalooterf32",
+    "name": "Longfin Tuna Looter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.541908,
+    "y": -7.361779
+  },
+  {
+    "vessel_id": "plaicepirate8c6",
+    "name": "Plaice Pirate",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.622415,
+    "y": -16.050652
+  },
+  {
+    "vessel_id": "pikeplunderer0ca",
+    "name": "Pike Plunderer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 13.368766,
+    "y": -15.747944
+  },
+  {
+    "vessel_id": "albacoreangler47d",
+    "name": "Albacore Angler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 12.117298,
+    "y": -11.082035
+  },
+  {
+    "vessel_id": "pikepirate89a",
+    "name": "Pike Pirate",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 14.96367,
+    "y": -14.96973
+  },
+  {
+    "vessel_id": "flatheadcatfishfindera51",
+    "name": "Flathead Catfish Finder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 12.762464,
+    "y": -16.171568
+  },
+  {
+    "vessel_id": "burbotbandit7bf",
+    "name": "Burbot Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 14.174973,
+    "y": -15.807861
+  },
+  {
+    "vessel_id": "clamclaimer13d",
+    "name": "Clam Claimer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 15.253903,
+    "y": -16.349461
+  },
+  {
+    "vessel_id": "neptunesnete8c",
+    "name": "Neptune's Net",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.208508,
+    "y": -16.767086
+  },
+  {
+    "vessel_id": "shrimpshooter91c",
+    "name": "Shrimp Shooter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.70016,
+    "y": -16.284056
+  },
+  {
+    "vessel_id": "aquaticangler5c3",
+    "name": "Aquatic Angler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.914731,
+    "y": -15.965448
+  },
+  {
+    "vessel_id": "blackbullheadbandit801",
+    "name": "Black Bullhead Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 13.832788,
+    "y": -15.0211
+  },
+  {
+    "vessel_id": "turbottakerd86",
+    "name": "Turbot Taker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.539366,
+    "y": -10.178889
+  },
+  {
+    "vessel_id": "seaswindler255",
+    "name": "Sea Swindler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 12.184756,
+    "y": -17.176023
+  },
+  {
+    "vessel_id": "atlanticbluemarlinmarauder0b4",
+    "name": "Atlantic Blue Marlin Marauder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.013579,
+    "y": -17.810699
+  },
+  {
+    "vessel_id": "laketroutlooter534",
+    "name": "Lake Trout Looter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.854966,
+    "y": -15.284078
+  },
+  {
+    "vessel_id": "dolphindasher004",
+    "name": "Dolphin Dasher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.358552,
+    "y": -10.453926
+  },
+  {
+    "vessel_id": "oceanicoracle9da",
+    "name": "Oceanic Oracle",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.700106,
+    "y": 28.39822
+  },
+  {
+    "vessel_id": "stout369",
+    "name": "Stout",
+    "type": "Entity.Vessel.Ferry.Cargo",
+    "is_seed": false,
+    "x": 1.741281,
+    "y": 0.862607
+  },
+  {
+    "vessel_id": "tidetamerbe1",
+    "name": "Tide Tamer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.492327,
+    "y": -11.46306
+  },
+  {
+    "vessel_id": "mackerelmarauder2d4",
+    "name": "Mackerel Marauder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 15.992938,
+    "y": -14.777236
+  },
+  {
+    "vessel_id": "grasspickerelgangster7d1",
+    "name": "Grass Pickerel Gangster",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.307293,
+    "y": -15.78547
+  },
+  {
+    "vessel_id": "harborharmonyfc9",
+    "name": "Harbor Harmony",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.049727,
+    "y": 25.63175
+  },
+  {
+    "vessel_id": "barracudabaiter8b3",
+    "name": "Barracuda Baiter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.456688,
+    "y": -16.290209
+  },
+  {
+    "vessel_id": "nauticalnomada36",
+    "name": "Nautical Nomad",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": 4.095597,
+    "y": -2.415726
+  },
+  {
+    "vessel_id": "wavewarrior5d7",
+    "name": "Wave Warrior",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.78442,
+    "y": -20.320593
+  },
+  {
+    "vessel_id": "cargocatalyst39a7",
+    "name": "Cargo Catalyst 3",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -20.513941,
+    "y": 34.06974
+  },
+  {
+    "vessel_id": "bluemarlinbandit292",
+    "name": "Blue Marlin Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.966204,
+    "y": -14.716445
+  },
+  {
+    "vessel_id": "longnosesuckerseeker6ab",
+    "name": "Longnose Sucker Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.010146,
+    "y": -2.348988
+  },
+  {
+    "vessel_id": "halibuthero9b9",
+    "name": "Halibut Hero",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -5.228057,
+    "y": -12.062531
+  },
+  {
+    "vessel_id": "marinemarauder8c9",
+    "name": "Marine Marauder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.269991,
+    "y": -12.060574
+  },
+  {
+    "vessel_id": "yellowperchpiratec59",
+    "name": "Yellow Perch Pirate",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -0.789385,
+    "y": -14.490351
+  },
+  {
+    "vessel_id": "inquisitive8c0",
+    "name": "Inquisitive",
+    "type": "Entity.Vessel.Research",
+    "is_seed": false,
+    "x": -6.810291,
+    "y": -9.509055
+  },
+  {
+    "vessel_id": "pompanoplunderere5d",
+    "name": "Pompano Plunderer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -3.80391,
+    "y": -10.222013
+  },
+  {
+    "vessel_id": "herringhunter30b",
+    "name": "Herring Hunter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -0.399365,
+    "y": -15.479803
+  },
+  {
+    "vessel_id": "musselmaster8d8",
+    "name": "Mussel Master",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -0.37282,
+    "y": -13.681244
+  },
+  {
+    "vessel_id": "speckledtroutsaboteur509",
+    "name": "Speckled Trout Saboteur",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.690211,
+    "y": -9.76464
+  },
+  {
+    "vessel_id": "swordfishswindler37b",
+    "name": "Swordfish Swindler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 14.005855,
+    "y": -16.514126
+  },
+  {
+    "vessel_id": "sharkshooterd66",
+    "name": "Shark Shooter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.516699,
+    "y": -4.827289
+  },
+  {
+    "vessel_id": "marlinmaster8ab",
+    "name": "Marlin Master",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -2.552534,
+    "y": -8.506819
+  },
+  {
+    "vessel_id": "mackerelmariner70c",
+    "name": "Mackerel Mariner",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 15.712005,
+    "y": -15.455633
+  },
+  {
+    "vessel_id": "pollockpirate212",
+    "name": "Pollock Pirate",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.374507,
+    "y": -18.165134
+  },
+  {
+    "vessel_id": "perchpursuer982",
+    "name": "Perch Pursuer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.071815,
+    "y": -17.92593
+  },
+  {
+    "vessel_id": "rainbowtroutraider4d0",
+    "name": "Rainbow Trout Raider",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 9.329304,
+    "y": -4.024928
+  },
+  {
+    "vessel_id": "vesselvertexa2e",
+    "name": "Vessel Vertex",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -13.43326,
+    "y": 27.422052
+  },
+  {
+    "vessel_id": "skipjacktunaseeker76c",
+    "name": "Skipjack Tuna Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.713382,
+    "y": -17.968214
+  },
+  {
+    "vessel_id": "haddockhawkb7c",
+    "name": "Haddock Hawk",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.001651,
+    "y": -10.76959
+  },
+  {
+    "vessel_id": "catchcruisera94",
+    "name": "Catch Cruiser",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -0.920382,
+    "y": -2.807503
+  },
+  {
+    "vessel_id": "bigeyetunabuccaneera16",
+    "name": "Bigeye Tuna Buccaneer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.889621,
+    "y": -9.457523
+  },
+  {
+    "vessel_id": "codfather685",
+    "name": "Codfather",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.679458,
+    "y": -12.334202
+  },
+  {
+    "vessel_id": "cohosalmoncapturera7b",
+    "name": "Coho Salmon Capturer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 9.921303,
+    "y": -11.497398
+  },
+  {
+    "vessel_id": "largemouthbasslooterf95",
+    "name": "Largemouth Bass Looter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.346666,
+    "y": -7.272618
+  },
+  {
+    "vessel_id": "snappersnatcher7be",
+    "name": "Snapper Snatcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": true,
+    "x": 1.495717,
+    "y": -7.580018
+  },
+  {
+    "vessel_id": "malta8cc",
+    "name": "Malta",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.481832,
+    "y": -6.628155
+  },
+  {
+    "vessel_id": "hooklinesinkera2d",
+    "name": "Hook, Line & Sinker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.744948,
+    "y": -5.986922
+  },
+  {
+    "vessel_id": "redfinpickerelraider744",
+    "name": "Redfin Pickerel Raider",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.404344,
+    "y": -6.707004
+  },
+  {
+    "vessel_id": "tigermuskellungemaster012",
+    "name": "Tiger Muskellunge Master",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.02074,
+    "y": -17.63559
+  },
+  {
+    "vessel_id": "sockeyesalmonseekerb95",
+    "name": "Sockeye Salmon Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.245915,
+    "y": -6.507188
+  },
+  {
+    "vessel_id": "trouttracker43b",
+    "name": "Trout Tracker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.7715,
+    "y": -18.02483
+  },
+  {
+    "vessel_id": "atlanticcodcatcherca6",
+    "name": "Atlantic Cod Catcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.527573,
+    "y": -13.196592
+  },
+  {
+    "vessel_id": "fishtracker03e",
+    "name": "Fish Tracker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.561773,
+    "y": -17.863956
+  },
+  {
+    "vessel_id": "flukefinder28d",
+    "name": "Fluke Finder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.283134,
+    "y": -8.817949
+  },
+  {
+    "vessel_id": "chumsalmoncatcher41e",
+    "name": "Chum Salmon Catcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.392677,
+    "y": -10.796245
+  },
+  {
+    "vessel_id": "saltyskippera9e",
+    "name": "Salty Skipper",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -0.681373,
+    "y": -17.911516
+  },
+  {
+    "vessel_id": "perchplundererbc0",
+    "name": "Perch Plunderer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.157514,
+    "y": -14.996175
+  },
+  {
+    "vessel_id": "stripedbassseeker80c",
+    "name": "Striped Bass Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 9.83705,
+    "y": -10.26962
+  },
+  {
+    "vessel_id": "gurnardgrabberd9a",
+    "name": "Gurnard Grabber",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.699932,
+    "y": -7.701053
+  },
+  {
+    "vessel_id": "dewie961",
+    "name": "Dewie",
+    "type": "Entity.Vessel.Other",
+    "is_seed": false,
+    "x": 9.660342,
+    "y": -19.861162
+  },
+  {
+    "vessel_id": "swordfishsaboteur22f",
+    "name": "Swordfish Saboteur",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 8.380665,
+    "y": -7.529128
+  },
+  {
+    "vessel_id": "whitingwrangler842",
+    "name": "Whiting Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.300323,
+    "y": -13.070577
+  },
+  {
+    "vessel_id": "vesselventuredfa",
+    "name": "Vessel Venture",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.842644,
+    "y": 23.593029
+  },
+  {
+    "vessel_id": "carpcatcher3f4",
+    "name": "Carp Catcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.143149,
+    "y": -18.1968
+  },
+  {
+    "vessel_id": "himarkroyal032",
+    "name": "Himark Royal",
+    "type": "Entity.Vessel.Tour",
+    "is_seed": false,
+    "x": -6.947111,
+    "y": -8.919417
+  },
+  {
+    "vessel_id": "mrray9c4",
+    "name": "Mr. Ray",
+    "type": "Entity.Vessel.Tour",
+    "is_seed": false,
+    "x": -7.38002,
+    "y": -8.406977
+  },
+  {
+    "vessel_id": "whelkwrangler9ac",
+    "name": "Whelk Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.872956,
+    "y": -18.68944
+  },
+  {
+    "vessel_id": "manatee17ea",
+    "name": "Manatee 1",
+    "type": "Entity.Vessel.Tour",
+    "is_seed": false,
+    "x": -6.174817,
+    "y": -10.363404
+  },
+  {
+    "vessel_id": "hewey2ef",
+    "name": "Hewey",
+    "type": "Entity.Vessel.Other",
+    "is_seed": false,
+    "x": 8.97293,
+    "y": -20.391047
+  },
+  {
+    "vessel_id": "tenchtaker595",
+    "name": "Tench Taker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.323087,
+    "y": -17.569971
+  },
+  {
+    "vessel_id": "pinksalmonpirate2a3",
+    "name": "Pink Salmon Pirate",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -0.633471,
+    "y": -17.815245
+  },
+  {
+    "vessel_id": "seasentinel1c4b",
+    "name": "Sea Sentinel 1",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -10.847267,
+    "y": 28.587549
+  },
+  {
+    "vessel_id": "maritimematrix7755",
+    "name": "Maritime Matrix 7",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -8.576167,
+    "y": 30.143793
+  },
+  {
+    "vessel_id": "maritimemajesticeb7",
+    "name": "Maritime Majestic",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -8.175584,
+    "y": 28.701801
+  },
+  {
+    "vessel_id": "bluecatfishcatcher468",
+    "name": "Blue Catfish Catcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.983724,
+    "y": -17.273758
+  },
+  {
+    "vessel_id": "carpcapturer993",
+    "name": "Carp Capturer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.301707,
+    "y": -17.638758
+  },
+  {
+    "vessel_id": "goldfishgrabber270",
+    "name": "Goldfish Grabber",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.625492,
+    "y": -17.279163
+  },
+  {
+    "vessel_id": "soleseeker47a",
+    "name": "Sole Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -2.938593,
+    "y": -8.36036
+  },
+  {
+    "vessel_id": "whitefishwhisperer6df",
+    "name": "Whitefish Whisperer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.293236,
+    "y": -8.412582
+  },
+  {
+    "vessel_id": "cutthroattroutcatchere2b",
+    "name": "Cutthroat Trout Catcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 13.362346,
+    "y": -16.370438
+  },
+  {
+    "vessel_id": "haddockhunter1a7",
+    "name": "Haddock Hunter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.163715,
+    "y": -6.68329
+  },
+  {
+    "vessel_id": "seawaysavvy102",
+    "name": "Seaway Savvy",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -10.44412,
+    "y": 25.12899
+  },
+  {
+    "vessel_id": "brinebuccaneer9fd",
+    "name": "Brine Buccaneer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.29028,
+    "y": -17.447855
+  },
+  {
+    "vessel_id": "redfishraider677",
+    "name": "Redfish Raider",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -0.879765,
+    "y": -6.062649
+  },
+  {
+    "vessel_id": "roachraider7ce",
+    "name": "Roach Raider",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.730553,
+    "y": -15.508084
+  },
+  {
+    "vessel_id": "europeaneelenthusiastf9f",
+    "name": "European Eel Enthusiast",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 13.984547,
+    "y": -14.64562
+  },
+  {
+    "vessel_id": "chainpickerelplunderer039",
+    "name": "Chain Pickerel Plunderer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -2.786994,
+    "y": -7.937814
+  },
+  {
+    "vessel_id": "marinersmate8ee",
+    "name": "Mariner's Mate",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.267449,
+    "y": -8.811181
+  },
+  {
+    "vessel_id": "snooksnatcherbdb",
+    "name": "Snook Snatcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -2.515979,
+    "y": -7.959688
+  },
+  {
+    "vessel_id": "squidsquad7fd",
+    "name": "Squid Squad",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 7.497375,
+    "y": -7.354877
+  },
+  {
+    "vessel_id": "baitedbreath538",
+    "name": "Baited Breath",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.744483,
+    "y": -17.355984
+  },
+  {
+    "vessel_id": "blueharbor2c1",
+    "name": "Blue Harbor",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.853852,
+    "y": 27.715513
+  },
+  {
+    "vessel_id": "goldentroutgrabber7f6",
+    "name": "Golden Trout Grabber",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.913838,
+    "y": -7.042133
+  },
+  {
+    "vessel_id": "yellowbullheadbuccaneer968",
+    "name": "Yellow Bullhead Buccaneer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.598828,
+    "y": -8.899366
+  },
+  {
+    "vessel_id": "tunatrawlerafd",
+    "name": "Tuna Trawler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.095091,
+    "y": -6.062819
+  },
+  {
+    "vessel_id": "cargocentric4d0",
+    "name": "Cargo Centric",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.303655,
+    "y": 32.013657
+  },
+  {
+    "vessel_id": "ladyfishlooter7ea",
+    "name": "Ladyfish Looter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.705001,
+    "y": -0.809376
+  },
+  {
+    "vessel_id": "deepseadrifter9f2",
+    "name": "Deepsea Drifter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -3.962928,
+    "y": -10.099133
+  },
+  {
+    "vessel_id": "seahunter56b",
+    "name": "Sea Hunter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.44335,
+    "y": -17.147898
+  },
+  {
+    "vessel_id": "freightfrontiers1bc",
+    "name": "Freight Frontiers",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -13.833224,
+    "y": 32.912201
+  },
+  {
+    "vessel_id": "honorablea6e",
+    "name": "Honorable",
+    "type": "Entity.Vessel.Ferry.Passenger",
+    "is_seed": false,
+    "x": -0.150089,
+    "y": -12.382636
+  },
+  {
+    "vessel_id": "bluegillbandita5f",
+    "name": "Bluegill Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.958483,
+    "y": -13.531447
+  },
+  {
+    "vessel_id": "eelenthusiast8c6",
+    "name": "Eel Enthusiast",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.997686,
+    "y": -3.594595
+  },
+  {
+    "vessel_id": "costasmeraldaac7",
+    "name": "Costa Smeralda",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": -1.139826,
+    "y": -6.951843
+  },
+  {
+    "vessel_id": "clownfishe3d",
+    "name": "Clown Fish",
+    "type": "Entity.Vessel.Tour",
+    "is_seed": false,
+    "x": -1.704405,
+    "y": -0.828115
+  },
+  {
+    "vessel_id": "maritimemomentumfab",
+    "name": "Maritime Momentum",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -19.890966,
+    "y": 33.282326
+  },
+  {
+    "vessel_id": "seaserpent4b4",
+    "name": "Sea Serpent",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.882268,
+    "y": -10.914918
+  },
+  {
+    "vessel_id": "walleyewranglerda0",
+    "name": "Walleye Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 7.835204,
+    "y": -7.260324
+  },
+  {
+    "vessel_id": "louietheii3e0",
+    "name": "Louie the II",
+    "type": "Entity.Vessel.Other",
+    "is_seed": false,
+    "x": -1.676092,
+    "y": -0.816652
+  },
+  {
+    "vessel_id": "eelensnarerd3a",
+    "name": "Eel Ensnarer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 7.557009,
+    "y": -13.046318
+  },
+  {
+    "vessel_id": "harborhelios585",
+    "name": "Harbor Helios",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.562529,
+    "y": 30.152006
+  },
+  {
+    "vessel_id": "bigeyetunabanditb73",
+    "name": "Bigeye Tuna Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.90089,
+    "y": -2.305681
+  },
+  {
+    "vessel_id": "lobsterlooterd41",
+    "name": "Lobster Looter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.575093,
+    "y": -13.313114
+  },
+  {
+    "vessel_id": "shipmatrix9b4",
+    "name": "Ship Matrix",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -6.732573,
+    "y": 24.544104
+  },
+  {
+    "vessel_id": "oysteropener442",
+    "name": "Oyster Opener",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 14.756915,
+    "y": -15.428729
+  },
+  {
+    "vessel_id": "cargocatalystb02",
+    "name": "Cargo Catalyst",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -5.906626,
+    "y": 25.315681
+  },
+  {
+    "vessel_id": "channelcatfishcapturer175",
+    "name": "Channel Catfish Capturer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 15.289523,
+    "y": -13.608099
+  },
+  {
+    "vessel_id": "trawlertriumph31f",
+    "name": "Trawler Triumph",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.650707,
+    "y": -13.203493
+  },
+  {
+    "vessel_id": "spanishmackerelmaster037",
+    "name": "Spanish Mackerel Master",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.204879,
+    "y": -7.205384
+  },
+  {
+    "vessel_id": "bonefishbaiter565",
+    "name": "Bonefish Baiter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 12.911368,
+    "y": -9.928322
+  },
+  {
+    "vessel_id": "kingfisher87d",
+    "name": "Kingfisher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 12.349083,
+    "y": -8.379676
+  },
+  {
+    "vessel_id": "tunataker80c",
+    "name": "Tuna Taker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.027465,
+    "y": -4.750852
+  },
+  {
+    "vessel_id": "tarpontaker6cd",
+    "name": "Tarpon Taker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 13.297676,
+    "y": -17.732317
+  },
+  {
+    "vessel_id": "fishfinderb9d",
+    "name": "Fish Finder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.914226,
+    "y": -9.749557
+  },
+  {
+    "vessel_id": "kingfishcapturerbe7",
+    "name": "Kingfish Capturer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.922493,
+    "y": -10.91821
+  },
+  {
+    "vessel_id": "wahoowrangler016",
+    "name": "Wahoo Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.988592,
+    "y": -5.479293
+  },
+  {
+    "vessel_id": "zanderzealotb23",
+    "name": "Zander Zealot",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 8.021652,
+    "y": -7.127545
+  },
+  {
+    "vessel_id": "mackerelmaster0a5",
+    "name": "Mackerel Master",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.770993,
+    "y": -9.860191
+  },
+  {
+    "vessel_id": "ruddraiderced",
+    "name": "Rudd Raider",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.811277,
+    "y": -8.409573
+  },
+  {
+    "vessel_id": "sailfishseeker8d5",
+    "name": "Sailfish Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.378663,
+    "y": -7.530439
+  },
+  {
+    "vessel_id": "transatlantic77d",
+    "name": "Trans Atlantic",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -12.510152,
+    "y": 32.157722
+  },
+  {
+    "vessel_id": "bluefintunabandit177",
+    "name": "Bluefin Tuna Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 8.441175,
+    "y": -8.018926
+  },
+  {
+    "vessel_id": "respectable717",
+    "name": "Respectable",
+    "type": "Entity.Vessel.Ferry.Passenger",
+    "is_seed": false,
+    "x": -3.946604,
+    "y": -15.65255
+  },
+  {
+    "vessel_id": "seabassbandit9ad",
+    "name": "Sea Bass Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.373423,
+    "y": -6.86484
+  },
+  {
+    "vessel_id": "spiritofoceanus404",
+    "name": "Spirit of Oceanus",
+    "type": "Entity.Vessel.Tour",
+    "is_seed": false,
+    "x": -7.24281,
+    "y": -10.515808
+  },
+  {
+    "vessel_id": "barracudabandit836",
+    "name": "Barracuda Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.135974,
+    "y": -8.133517
+  },
+  {
+    "vessel_id": "codcatcher04c",
+    "name": "Cod Catcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.009955,
+    "y": -7.564411
+  },
+  {
+    "vessel_id": "europeanseabassbuccaneer777",
+    "name": "European Seabass Buccaneer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.886926,
+    "y": -5.618117
+  },
+  {
+    "vessel_id": "squidsquasherda9",
+    "name": "Squid Squasher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.977026,
+    "y": -12.633855
+  },
+  {
+    "vessel_id": "bassbandit0d5",
+    "name": "Bass Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.559191,
+    "y": -7.43742
+  },
+  {
+    "vessel_id": "cobiacapturere5e",
+    "name": "Cobia Capturer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.70523,
+    "y": -5.179128
+  },
+  {
+    "vessel_id": "flounderfinderd64",
+    "name": "Flounder Finder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 13.672522,
+    "y": -11.633088
+  },
+  {
+    "vessel_id": "salmonseeker630",
+    "name": "Salmon Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 8.757293,
+    "y": -11.502832
+  },
+  {
+    "vessel_id": "northernpikepirated97",
+    "name": "Northern Pike Pirate",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.119617,
+    "y": -10.963166
+  },
+  {
+    "vessel_id": "sailfishswindlerb4f",
+    "name": "Sailfish Swindler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.996786,
+    "y": -5.158699
+  },
+  {
+    "vessel_id": "muskellungemastere7c",
+    "name": "Muskellunge Master",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.732877,
+    "y": -8.37706
+  },
+  {
+    "vessel_id": "seasirenf43",
+    "name": "Sea Siren",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.832073,
+    "y": -9.347755
+  },
+  {
+    "vessel_id": "steelheadstalkera87",
+    "name": "Steelhead Stalker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.824825,
+    "y": -11.174814
+  },
+  {
+    "vessel_id": "clamcatcherfb3",
+    "name": "Clam Catcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.962301,
+    "y": -12.174632
+  },
+  {
+    "vessel_id": "brillbandit0a1",
+    "name": "Brill Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 0.365307,
+    "y": -6.285111
+  },
+  {
+    "vessel_id": "huron1b3",
+    "name": "Huron",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.672538,
+    "y": -2.313625
+  },
+  {
+    "vessel_id": "fishflingere29",
+    "name": "Fish Flinger",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.021894,
+    "y": -8.292787
+  },
+  {
+    "vessel_id": "muskellungemarauder78c",
+    "name": "Muskellunge Marauder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 14.06504,
+    "y": -15.964607
+  },
+  {
+    "vessel_id": "crappiecapturer875",
+    "name": "Crappie Capturer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 4.864082,
+    "y": -9.017686
+  },
+  {
+    "vessel_id": "freightfrequency5f65",
+    "name": "Freight Frequency 5",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -5.247232,
+    "y": 23.630234
+  },
+  {
+    "vessel_id": "plaiceplundererba1",
+    "name": "Plaice Plunderer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 8.402007,
+    "y": -18.757906
+  },
+  {
+    "vessel_id": "albacoreassaulter482",
+    "name": "Albacore Assaulter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.541108,
+    "y": -7.269745
+  },
+  {
+    "vessel_id": "seabreamseekerd8b",
+    "name": "Seabream Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.238135,
+    "y": -5.032828
+  },
+  {
+    "vessel_id": "wahoowarriord42",
+    "name": "Wahoo Warrior",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 16.134075,
+    "y": -13.551343
+  },
+  {
+    "vessel_id": "musselmaraudere9b",
+    "name": "Mussel Marauder",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 14.306783,
+    "y": -13.755055
+  },
+  {
+    "vessel_id": "americaneelenthusiastcfa",
+    "name": "American Eel Enthusiast",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 10.768072,
+    "y": -9.804233
+  },
+  {
+    "vessel_id": "mahimahimaster04f",
+    "name": "Mahi-Mahi Master",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 15.005701,
+    "y": -16.12678
+  },
+  {
+    "vessel_id": "brownbullheadbriganded2",
+    "name": "Brown Bullhead Brigand",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.751598,
+    "y": -8.004418
+  },
+  {
+    "vessel_id": "bassbaiterb9f",
+    "name": "Bass Baiter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 9.324475,
+    "y": -18.413345
+  },
+  {
+    "vessel_id": "sardineseeker62e",
+    "name": "Sardine Seeker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.668047,
+    "y": -9.86768
+  },
+  {
+    "vessel_id": "blackdrumbanditc5b",
+    "name": "Black Drum Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 16.437363,
+    "y": -14.782962
+  },
+  {
+    "vessel_id": "graylinggrabber802",
+    "name": "Grayling Grabber",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 7.650074,
+    "y": -10.931244
+  },
+  {
+    "vessel_id": "browntroutbandite67",
+    "name": "Brown Trout Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.606281,
+    "y": -7.045549
+  },
+  {
+    "vessel_id": "kingsalmonking5b4",
+    "name": "King Salmon King",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.774277,
+    "y": -11.706308
+  },
+  {
+    "vessel_id": "salmonsnatcher19d",
+    "name": "Salmon Snatcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.298648,
+    "y": -10.146055
+  },
+  {
+    "vessel_id": "amberjackassaulterd52",
+    "name": "Amberjack Assaulter",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.140463,
+    "y": -11.999125
+  },
+  {
+    "vessel_id": "breambanditc85",
+    "name": "Bream Bandit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 11.378553,
+    "y": -16.232464
+  },
+  {
+    "vessel_id": "oceanoracle1d0",
+    "name": "Ocean Oracle",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.041822,
+    "y": -6.275868
+  },
+  {
+    "vessel_id": "whitesuckerwrangler0b3",
+    "name": "White Sucker Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 3.907662,
+    "y": -6.158633
+  },
+  {
+    "vessel_id": "swimmingsafely92d",
+    "name": "Swimming Safely",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 7.184212,
+    "y": -13.808158
+  },
+  {
+    "vessel_id": "vesselvictory3738",
+    "name": "Vessel Victory 3",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -15.284792,
+    "y": 32.003246
+  },
+  {
+    "vessel_id": "oceanicoasis15f6",
+    "name": "Oceanic Oasis 1",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -12.941819,
+    "y": 30.334614
+  },
+  {
+    "vessel_id": "harborhalo9dd6",
+    "name": "Harbor Halo 9",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -11.590963,
+    "y": 29.479239
+  },
+  {
+    "vessel_id": "transpacificed8",
+    "name": "Trans Pacific",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.536741,
+    "y": 24.337822
+  },
+  {
+    "vessel_id": "freightfirm27f",
+    "name": "Freight Firm",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.087619,
+    "y": 29.31374
+  },
+  {
+    "vessel_id": "catfishcapturer7a8",
+    "name": "Catfish Capturer",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.42219,
+    "y": -2.714197
+  },
+  {
+    "vessel_id": "opheliacac",
+    "name": "Ophelia",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.48745,
+    "y": -1.924072
+  },
+  {
+    "vessel_id": "aquaticpursuitf31",
+    "name": "Aquatic Pursuit",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 7.550835,
+    "y": -9.957323
+  },
+  {
+    "vessel_id": "whitemarlinwranglerbac",
+    "name": "White Marlin Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 2.738219,
+    "y": -2.804142
+  },
+  {
+    "vessel_id": "tautogtaker867",
+    "name": "Tautog Taker",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.849451,
+    "y": -8.462442
+  },
+  {
+    "vessel_id": "seawayspectra490",
+    "name": "Seaway Spectra",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -18.296827,
+    "y": 32.74012
+  },
+  {
+    "vessel_id": "cargocircuit26cc",
+    "name": "Cargo Circuit 2",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -10.827034,
+    "y": 27.679163
+  },
+  {
+    "vessel_id": "crabcatcher1aa",
+    "name": "Crab Catcher",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 6.815535,
+    "y": -7.975475
+  },
+  {
+    "vessel_id": "louieda4",
+    "name": "Louie",
+    "type": "Entity.Vessel.Other",
+    "is_seed": false,
+    "x": 9.512291,
+    "y": -20.232428
+  },
+  {
+    "vessel_id": "weakfishwranglerd3c",
+    "name": "Weakfish Wrangler",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 13.341999,
+    "y": -15.039198
+  },
+  {
+    "vessel_id": "roachrobberdb6",
+    "name": "Roach Robber",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": true,
+    "x": 3.594502,
+    "y": -18.87998
+  },
+  {
+    "vessel_id": "oceanicoasisd3f",
+    "name": "Oceanic Oasis",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -6.677708,
+    "y": 23.865343
+  },
+  {
+    "vessel_id": "posiedonsparadise7e6",
+    "name": "Posiedon's Paradise",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 8.944867,
+    "y": -18.240284
+  },
+  {
+    "vessel_id": "prawnpredator5d7",
+    "name": "Prawn Predator",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 5.399871,
+    "y": -12.571853
+  },
+  {
+    "vessel_id": "seasovereignc6e",
+    "name": "Sea Sovereign",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.966645,
+    "y": 27.34058
+  },
+  {
+    "vessel_id": "oceanicodyssey11207",
+    "name": "Oceanic Odyssey 11",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.536778,
+    "y": 31.104511
+  },
+  {
+    "vessel_id": "freightfortef0d",
+    "name": "Freight Forte",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -16.270672,
+    "y": 32.73632
+  },
+  {
+    "vessel_id": "nauticalnetworks865",
+    "name": "Nautical Networks",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -17.603146,
+    "y": 32.382381
+  },
+  {
+    "vessel_id": "whitemarlinmasterfa1",
+    "name": "White Marlin Master",
+    "type": "Entity.Vessel.FishingVessel",
+    "is_seed": false,
+    "x": 1.071779,
+    "y": -3.906971
+  },
+  {
+    "vessel_id": "maritimemiraclef85",
+    "name": "Maritime Miracle",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.167823,
+    "y": 23.211004
+  },
+  {
+    "vessel_id": "vesselvanguardbf2",
+    "name": "Vessel Vanguard",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -18.953802,
+    "y": 34.356842
+  },
+  {
+    "vessel_id": "seasystem375",
+    "name": "Sea System",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -17.334686,
+    "y": 33.472752
+  },
+  {
+    "vessel_id": "seasanctuary505",
+    "name": "Sea Sanctuary",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -16.65008,
+    "y": 32.368881
+  },
+  {
+    "vessel_id": "seasystem3e22",
+    "name": "Sea System 3",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -12.063758,
+    "y": 25.046114
+  },
+  {
+    "vessel_id": "athenad34",
+    "name": "Athena",
+    "type": "Entity.Vessel.Research",
+    "is_seed": false,
+    "x": -6.874502,
+    "y": -9.178516
+  },
+  {
+    "vessel_id": "freightforte6f28",
+    "name": "Freight Forte 6",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -5.671994,
+    "y": 22.528744
+  },
+  {
+    "vessel_id": "vesselvistad0c",
+    "name": "Vessel Vista",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -8.541485,
+    "y": 28.357725
+  },
+  {
+    "vessel_id": "nauticalnirvana874",
+    "name": "Nautical Nirvana",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -6.343765,
+    "y": 24.016842
+  },
+  {
+    "vessel_id": "oceanoptimum9f4",
+    "name": "Ocean Optimum",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -12.690919,
+    "y": 26.143663
+  },
+  {
+    "vessel_id": "maritimemomentum8d12",
+    "name": "Maritime Momentum 8",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -8.835073,
+    "y": 24.993643
+  },
+  {
+    "vessel_id": "transpolar2a4",
+    "name": "Trans Polar",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -4.929483,
+    "y": 23.094322
+  },
+  {
+    "vessel_id": "maritimemover13f",
+    "name": "Maritime Mover",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -8.908932,
+    "y": 27.983158
+  },
+  {
+    "vessel_id": "transoceane48",
+    "name": "Trans Ocean",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.814349,
+    "y": 30.154135
+  },
+  {
+    "vessel_id": "maritimemastersd93",
+    "name": "Maritime Masters",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.895048,
+    "y": 27.83345
+  },
+  {
+    "vessel_id": "seasphere38e",
+    "name": "Sea Sphere",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -16.816137,
+    "y": 33.291439
+  },
+  {
+    "vessel_id": "transatlantic47a9",
+    "name": "Trans Atlantic 4",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.569626,
+    "y": 27.677237
+  },
+  {
+    "vessel_id": "cargocircuit545",
+    "name": "Cargo Circuit",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -11.824733,
+    "y": 26.745396
+  },
+  {
+    "vessel_id": "seawayservicesc71",
+    "name": "Seaway Services",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -15.82354,
+    "y": 29.462479
+  },
+  {
+    "vessel_id": "harborhalo603",
+    "name": "Harbor Halo",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -11.543896,
+    "y": 27.158113
+  },
+  {
+    "vessel_id": "oceanicodyssey5dd",
+    "name": "Oceanic Odyssey",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.240244,
+    "y": 24.745693
+  },
+  {
+    "vessel_id": "nauticalnimbusa99",
+    "name": "Nautical Nimbus",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.819296,
+    "y": 32.379002
+  },
+  {
+    "vessel_id": "harborhavenf91",
+    "name": "Harbor Haven",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -20.836206,
+    "y": 34.374741
+  },
+  {
+    "vessel_id": "maritimematrix51a",
+    "name": "Maritime Matrix",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.91185,
+    "y": 25.295864
+  },
+  {
+    "vessel_id": "vesselventure46e5",
+    "name": "Vessel Venture 4",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -12.551355,
+    "y": 28.192171
+  },
+  {
+    "vessel_id": "nauticalnexus1a5d",
+    "name": "Nautical Nexus 1",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.286477,
+    "y": 25.129704
+  },
+  {
+    "vessel_id": "freightfrontiers7134",
+    "name": "Freight Frontiers 7",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -11.58076,
+    "y": 28.171331
+  },
+  {
+    "vessel_id": "transglobal266",
+    "name": "Trans Global",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -5.514049,
+    "y": 24.358908
+  },
+  {
+    "vessel_id": "seasentry2e28",
+    "name": "Sea Sentry 2",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -15.655564,
+    "y": 29.668171
+  },
+  {
+    "vessel_id": "cargocosmoscde",
+    "name": "Cargo Cosmos",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -19.032658,
+    "y": 33.125935
+  },
+  {
+    "vessel_id": "oceanicline3de",
+    "name": "Oceanic Line",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -4.82478,
+    "y": 23.806408
+  },
+  {
+    "vessel_id": "oceanicoverturec58",
+    "name": "Oceanic Overture",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.383958,
+    "y": 27.287712
+  },
+  {
+    "vessel_id": "harborhorizon6c6",
+    "name": "Harbor Horizon",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -11.95733,
+    "y": 29.127548
+  },
+  {
+    "vessel_id": "transcontinentalcf3",
+    "name": "Trans Continental",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.062869,
+    "y": 26.262835
+  },
+  {
+    "vessel_id": "freightfrequencyfea",
+    "name": "Freight Frequency",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -11.60778,
+    "y": 24.545343
+  },
+  {
+    "vessel_id": "harborholdings797",
+    "name": "Harbor Holdings",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -16.014912,
+    "y": 30.849955
+  },
+  {
+    "vessel_id": "seawaysurgeb1c",
+    "name": "Seaway Surge",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -6.773365,
+    "y": 23.752417
+  },
+  {
+    "vessel_id": "harborhorizon10ecb",
+    "name": "Harbor Horizon 10",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -19.728382,
+    "y": 34.157356
+  },
+  {
+    "vessel_id": "cargocrestb7c",
+    "name": "Cargo Crest",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -13.319983,
+    "y": 26.462654
+  },
+  {
+    "vessel_id": "freightflux254",
+    "name": "Freight Flux",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -15.733596,
+    "y": 31.118288
+  },
+  {
+    "vessel_id": "nauticalnexus6cc",
+    "name": "Nautical Nexus",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.461885,
+    "y": 33.048191
+  },
+  {
+    "vessel_id": "oceanicoracle2bf2",
+    "name": "Oceanic Oracle 2",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -19.575632,
+    "y": 33.948521
+  },
+  {
+    "vessel_id": "transglobal607c",
+    "name": "Trans Global 6",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.751613,
+    "y": 28.112984
+  },
+  {
+    "vessel_id": "vesselventuresc7e",
+    "name": "Vessel Ventures",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -17.514772,
+    "y": 31.7934
+  },
+  {
+    "vessel_id": "freightfusion141",
+    "name": "Freight Fusion",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.970963,
+    "y": 33.16283
+  },
+  {
+    "vessel_id": "nauticalnucleusc5a",
+    "name": "Nautical Nucleus",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.733006,
+    "y": 30.820148
+  },
+  {
+    "vessel_id": "freightfountaind90",
+    "name": "Freight Fountain",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.079161,
+    "y": 31.281858
+  },
+  {
+    "vessel_id": "cargocynosure29d",
+    "name": "Cargo Cynosure",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.83481,
+    "y": 29.78315
+  },
+  {
+    "vessel_id": "vesselvanguard5d06",
+    "name": "Vessel Vanguard 5",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -15.229574,
+    "y": 30.409576
+  },
+  {
+    "vessel_id": "cargocentric443e",
+    "name": "Cargo Centric 4",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -13.067953,
+    "y": 31.668478
+  },
+  {
+    "vessel_id": "vesselvortex355",
+    "name": "Vessel Vortex",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -9.535911,
+    "y": 28.497858
+  },
+  {
+    "vessel_id": "vesselvictoryafd",
+    "name": "Vessel Victory",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -13.008347,
+    "y": 31.153126
+  },
+  {
+    "vessel_id": "aquatransit6bc",
+    "name": "Aqua Transit",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -5.276862,
+    "y": 23.016981
+  },
+  {
+    "vessel_id": "harborhelix456",
+    "name": "Harbor Helix",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -17.321766,
+    "y": 33.005745
+  },
+  {
+    "vessel_id": "seasolutions4d5",
+    "name": "Sea Solutions",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -7.129939,
+    "y": 26.414244
+  },
+  {
+    "vessel_id": "seawaysynergybaf",
+    "name": "Seaway Synergy",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -10.307308,
+    "y": 28.413002
+  },
+  {
+    "vessel_id": "seawaysynergy8489",
+    "name": "Seaway Synergy 8",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -13.642333,
+    "y": 32.172325
+  },
+  {
+    "vessel_id": "transpacific5ada",
+    "name": "Trans Pacific 5",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -18.657618,
+    "y": 33.415989
+  },
+  {
+    "vessel_id": "seasentry1d3",
+    "name": "Sea Sentry",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -19.850706,
+    "y": 33.361496
+  },
+  {
+    "vessel_id": "nauticalnomad11356",
+    "name": "Nautical Nomad 11",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -18.195381,
+    "y": 32.330563
+  },
+  {
+    "vessel_id": "bulkcarriers6cd",
+    "name": "Bulk Carriers",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -10.404726,
+    "y": 27.112925
+  },
+  {
+    "vessel_id": "seasentinel24e",
+    "name": "Sea Sentinel",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -8.26656,
+    "y": 25.783876
+  },
+  {
+    "vessel_id": "nauticalnavigatorabd",
+    "name": "Nautical Navigator",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -20.006962,
+    "y": 34.748055
+  },
+  {
+    "vessel_id": "seawayspectrumca2",
+    "name": "Seaway Spectrum",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -8.064933,
+    "y": 24.181423
+  },
+  {
+    "vessel_id": "oceanicomnipotenta4a",
+    "name": "Oceanic Omnipotent",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -17.692549,
+    "y": 30.900467
+  },
+  {
+    "vessel_id": "heartofoceanusf11",
+    "name": "Heart of Oceanus",
+    "type": "Entity.Vessel.Tour",
+    "is_seed": false,
+    "x": -7.513833,
+    "y": -7.969491
+  },
+  {
+    "vessel_id": "seawaysage5ce",
+    "name": "Seaway Sage",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -13.536799,
+    "y": 31.865053
+  },
+  {
+    "vessel_id": "nauticalnucleus107c4",
+    "name": "Nautical Nucleus 10",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -15.134359,
+    "y": 28.5989
+  },
+  {
+    "vessel_id": "maritimemagnitude2e9",
+    "name": "Maritime Magnitude",
+    "type": "Entity.Vessel.CargoVessel",
+    "is_seed": false,
+    "x": -14.014943,
+    "y": 30.076687
+  }
+]

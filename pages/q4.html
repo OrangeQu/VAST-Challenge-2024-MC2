@@ -332,7 +332,7 @@
         similarityMap.set(s.vessel_id, s.similarity_score);
     });
     
-    const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.id));
+    const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.vessel_id));
     
     const plotData = [];
     
@@ -359,11 +359,11 @@
     // 手动添加 SouthSeafood 船舶（红色点）
     data.southseafood_vessels.forEach(ss => {
         const vesselInfo = ss.vessel_info;
-        const vesselDetail = data.vessels.find(v => v.vessel_id === vesselInfo.id);
+        const vesselDetail = data.vessels.find(v => v.vessel_id === vesselInfo.vessel_id);
         if (vesselDetail) {
             plotData.push({
                 name: vesselInfo.name,
-                id: vesselInfo.id,
+                id: vesselInfo.vessel_id,
                 nightFishing: vesselDetail.night_fishing_ratio || 0,
                 similarity: 1.0,
                 isSS: true,

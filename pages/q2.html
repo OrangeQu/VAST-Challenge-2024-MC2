@@ -171,7 +171,7 @@
         // 加载 vessel_movements_v2.json 获取真实ping数据
         let movementsData = {};
         try {
-            const resp = await fetch('../data/vessel_movements_v2.json');
+            const resp = await fetch('../data/processed/vessel_movements.json');
             movementsData = await resp.json();
         } catch(e) {
             console.warn('无法加载 vessel_movements_v2.json，使用编码序列数据', e);
@@ -179,7 +179,7 @@
 
         // 构建 SS 船舶ID到movements key的映射
         const ssVessels = (data.southseafood_vessels || []).filter(v => v && v.vessel_info);
-        const ssIds = new Set(ssVessels.map(v => v.vessel_info.id));
+        const ssIds = new Set(ssVessels.map(v => v.vessel_info.vessel_id));
 
         // 从 movementsData 中找到 SS 船舶
         const ssMovementsKeys = {};
@@ -368,9 +368,16 @@
             { name: 'Nemo Reef', kind: 'protected' },
             { name: 'Don Limpet Preserve', kind: 'protected' }
         ];
+        // 辅助函数：从 location_coords 中提取 [lon, lat] 数组
+        function getCoordLonLat(coord) {
+            if (!coord) return null;
+            if (Array.isArray(coord)) return [coord[0], coord[1]];
+            if (coord.lon !== undefined && coord.lat !== undefined) return [coord.lon, coord.lat];
+            return null;
+        }
         const keyPoints = keyLocs
-            .map(d => ({ name: d.name, coords: locationCoords[d.name], kind: d.kind }))
-            .filter(d => Array.isArray(d.coords));
+            .map(d => ({ name: d.name, coords: getCoordLonLat(locationCoords[d.name]), kind: d.kind }))
+            .filter(d => d.coords);
 
         function drawBaseMap() {
             const gridGroup = staticLayer.append('g').attr('class', 'map-grid');
@@ -729,7 +736,7 @@
         const innerH = height - margin.top - margin.bottom;
 
         const transitions = ['P->P', 'P->F', 'P->C', 'P->O', 'F->P', 'F->F', 'F->C', 'F->O', 'C->P', 'C->F', 'C->C', 'C->O', 'O->P', 'O->F', 'O->C', 'O->O'];
-        const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.id));
+        const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.vessel_id));
 
         // 计算转换矩阵
         const ssTrans = {};
@@ -840,7 +847,7 @@
         const innerW = width - margin.left - margin.right;
         const innerH = height - margin.top - margin.bottom;
 
-        const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.id));
+        const ssIds = new Set((data.southseafood_vessels || []).map(v => v.vessel_info.vessel_id));
 
         // 获取每艘船的夜间捕鱼率
         const ssNight = [];

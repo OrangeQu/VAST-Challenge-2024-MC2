@@ -50,6 +50,9 @@
       'South Paackland': '#3b82f6', 'Haacklee': '#3b82f6', 'Port Grove': '#3b82f6',
       'Ghoti Preserve': '#ef4444', 'Don Limpet Preserve': '#ef4444',
       'Wrasse Beds': '#f59e0b',
+      'Cod Table': '#f59e0b',
+      'Nemo Reef': '#f59e0b',
+      'Tuna Shelf': '#f59e0b',
       'Nav 1': '#94a3b8', 'Nav 2': '#94a3b8', 'Nav 3': '#94a3b8',
       'Nav A': '#94a3b8', 'Nav B': '#94a3b8', 'Nav C': '#94a3b8',
       'Nav D': '#94a3b8', 'Nav E': '#94a3b8',
@@ -60,7 +63,7 @@
     }
     function getLocLabel(loc) {
       if (loc === 'Ghoti Preserve' || loc === 'Don Limpet Preserve') return '🔴 ' + loc;
-      if (loc === 'Wrasse Beds') return '🟠 ' + loc;
+      if (loc === 'Wrasse Beds' || loc === 'Cod Table' || loc === 'Nemo Reef' || loc === 'Tuna Shelf') return '🟠 ' + loc;
       if (loc?.startsWith('Nav') || loc?.startsWith('Exit')) return '⚪ ' + loc;
       return '🔵 ' + loc;
     }

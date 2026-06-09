@@ -204,7 +204,7 @@
         }
 
         async function loadData() {
-            const response = await fetch('../data/processed_data_v2.json');
+            const response = await fetch('../data/processed/processed_data.json');
             return await response.json();
         }
 
@@ -218,6 +218,8 @@
                 vessels.forEach(v => { vesselsMap[v.vessel_id] = v; });
                 vesselIds = vessels.map(v => v.vessel_id);
                 ssVessels = ssData.map(s => s.features).filter(f => f);
+                // 构建 SS vessel_id 集合（从 southseafood_vessels 的 vessel_info 中获取）
+                const ssIdSet = new Set(ssData.map(s => s.vessel_info?.vessel_id).filter(Boolean));
                 
                 const vesselSimMap = new Map();
                 similar.forEach(sim => {
@@ -294,14 +296,13 @@
             
             const { width, height } = getActualChartSize(container);
             
-            const ssIds = new Set(ssVessels.map(v => v.vessel_id));
             const suspectIds = new Set(highSuspectVessels.map(v => v.vessel_id));
             
             // 收集所有点数据
             pointsData = [];
             for (const [vid, v] of Object.entries(vesselsMap)) {
                 if (v && v.tsne_x !== undefined && v.tsne_y !== undefined) {
-                    const isSS = ssIds.has(vid);
+                    const isSS = ssIdSet.has(vid);
                     const isSuspect = suspectIds.has(vid);
                     pointsData.push({
                         id: vid,
@@ -614,8 +615,7 @@
             const top3Avg = {};
             RADAR_FEATURES.forEach(f => { top3Avg[f.key] = top3Vessels.reduce((sum, v) => sum + (v[f.key] || 0), 0) / (top3Vessels.length || 1); });
             
-            const ssIds = new Set(ssVessels.map(v => v.vessel_id));
-            const otherVessels = vesselIds.filter(id => !ssIds.has(id)).map(id => vesselsMap[id]).filter(v => v);
+            const otherVessels = vesselIds.filter(id => !ssIdSet.has(id)).map(id => vesselsMap[id]).filter(v => v);
             const fleetAvg = {};
             RADAR_FEATURES.forEach(f => { fleetAvg[f.key] = otherVessels.reduce((sum, v) => sum + (v[f.key] || 0), 0) / (otherVessels.length || 1); });
             
@@ -683,7 +683,6 @@
             const innerW = width - margin.left - margin.right;
             const innerH = height - margin.top - margin.bottom;
             
-            const ssIds = new Set(ssVessels.map(v => v.vessel_id));
             const suspectIds = new Set(highSuspectVessels.map(v => v.vessel_id));
             const vesselsData = vesselIds.map(id => vesselsMap[id]).filter(v => v);
             
@@ -704,7 +703,7 @@
             
             // 其他船舶
             vesselsData.forEach(v => {
-                const isSS = ssIds.has(v.vessel_id);
+                const isSS = ssIdSet.has(v.vessel_id);
                 const isSuspect = suspectIds.has(v.vessel_id);
                 if (isSS || isSuspect) return;
                 const points = PARALLEL_FEATURES.map(dim => ({ x: xScale(dim.label), y: yScales[dim.key](v[dim.key] || 0) }));
@@ -723,7 +722,7 @@
             
             // SouthSeafood
             vesselsData.forEach(v => {
-                const isSS = ssIds.has(v.vessel_id);
+                const isSS = ssIdSet.has(v.vessel_id);
                 if (!isSS) return;
                 const points = PARALLEL_FEATURES.map(dim => ({ x: xScale(dim.label), y: yScales[dim.key](v[dim.key] || 0) }));
                 svg.append('path').attr('d', d3.line().x(d => d.x).y(d => d.y)(points)).attr('fill', 'none')

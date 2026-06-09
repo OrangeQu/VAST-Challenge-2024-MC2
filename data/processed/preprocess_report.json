@@ -1,0 +1,81 @@
+{
+  "generated_at": "2026-06-09T15:46:08",
+  "summary": {
+    "total_vessels": 296,
+    "total_pings": 258542,
+    "total_harbor_reports": 2487,
+    "total_delivery_reports": 4992,
+    "protected_areas": [
+      "Ghoti Preserve",
+      "Nemo Reef",
+      "Don Limpet Preserve"
+    ],
+    "fishing_grounds": [
+      "Cod Table",
+      "Tuna Shelf",
+      "Wrasse Beds"
+    ],
+    "cities": [
+      "Haacklee",
+      "Port Grove",
+      "Lomark",
+      "Himark",
+      "Paackland",
+      "Centralia",
+      "South Paackland",
+      "City of Port Grove",
+      "City of Haacklee",
+      "City of Paackland",
+      "City of South Paackland",
+      "City of Lomark",
+      "City of Himark"
+    ],
+    "southseafood_vessels": 2,
+    "similar_vessel_pairs": 100,
+    "risk_vessels": 50
+  },
+  "southseafood_check": {
+    "Snapper Snatcher": {
+      "protected_dwell_ratio": 0.09554879318340308,
+      "protected_dwell_hours": 235.25855769611113,
+      "protected_area_details": {
+        "Ghoti Preserve": {
+          "visits": 4,
+          "total_dwell_seconds": 846930.807706,
+          "total_dwell_hours": 235.25855769611113
+        },
+        "Nemo Reef": {
+          "visits": 0,
+          "total_dwell_seconds": 0,
+          "total_dwell_hours": 0.0
+        },
+        "Don Limpet Preserve": {
+          "visits": 0,
+          "total_dwell_seconds": 0,
+          "total_dwell_hours": 0.0
+        }
+      }
+    },
+    "Roach Robber": {
+      "protected_dwell_ratio": 0.0,
+      "protected_dwell_hours": 0.0,
+      "protected_area_details": {
+        "Ghoti Preserve": {
+          "visits": 0,
+          "total_dwell_seconds": 0,
+          "total_dwell_hours": 0.0
+        },
+        "Nemo Reef": {
+          "visits": 0,
+          "total_dwell_seconds": 0,
+          "total_dwell_hours": 0.0
+        },
+        "Don Limpet Preserve": {
+          "visits": 0,
+          "total_dwell_seconds": 0,
+          "total_dwell_hours": 0.0
+        }
+      }
+    }
+  }
+}

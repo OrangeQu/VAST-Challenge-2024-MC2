@@ -702,6 +702,89 @@ a { color: inherit; }
 .bottom-stats-header { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: .9rem; margin-bottom: .5rem; }
 .bottom-stats-content { min-height: 180px; }
 
+/* ============================================================
+   双弦图样式（底部移动模式弦图）
+   ============================================================ */
+.chord-container-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 8px;
+  justify-content: space-between;
+}
+
+.chord-card {
+  flex: 1;
+  min-width: 280px;
+  background: rgba(255,255,255,0.75);
+  border-radius: 20px;
+  padding: 12px 12px 8px 12px;
+  backdrop-filter: blur(2px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
+}
+
+.chord-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.chord-card-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #1e293b;
+}
+
+.chord-card-title .badge {
+  font-size: 0.7rem;
+  background: #f1f5f9;
+  padding: 2px 8px;
+  border-radius: 24px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.chord-viz {
+  width: 100%;
+  min-height: 260px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.chord-placeholder {
+  text-align: center;
+  padding: 40px 16px;
+  color: #64748b;
+  font-size: 0.75rem;
+  background: #f8fafc;
+  border-radius: 16px;
+  width: 100%;
+}
+
+.chord-note {
+  font-size: 0.65rem;
+  color: #94a3b8;
+  text-align: center;
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px dashed #e2e8f0;
+}
+
+@media (max-width: 860px) {
+  .chord-container-group {
+    flex-direction: column;
+  }
+  .chord-card {
+    min-width: auto;
+  }
+}
+
 /* --- 响应式 --- */
 @media (max-width: 1200px) {
     .three-col-layout { grid-template-columns: 220px minmax(0, 1fr) 220px; gap: 1.2rem; }
@@ -714,4 +797,44 @@ a { color: inherit; }
     .top-bar-center { flex-direction: column; align-items: stretch; }
 }
 
+/* ============================================================
+   桑基图 悬停高亮 / 淡化
+   ============================================================ */
+.sankey-link {
+    transition: opacity 0.2s, stroke-width 0.2s;
+    cursor: pointer;
+}
+.sankey-node rect {
+    transition: opacity 0.2s;
+    cursor: pointer;
+}
+.sankey-node text {
+    transition: opacity 0.2s;
+    pointer-events: none;
+}
+
+/* 高亮态：link 加粗加亮，node 保持不透明 */
+.sankey-link.highlighted {
+    opacity: 1 !important;
+    stroke-opacity: 1 !important;
+}
+.sankey-node.highlighted rect {
+    opacity: 1 !important;
+    filter: brightness(1.15);
+}
+.sankey-node.highlighted text {
+    opacity: 1 !important;
+    font-weight: 600;
+}
+
+/* 淡化态 */
+.sankey-link.dimmed {
+    opacity: 0.08 !important;
+}
+.sankey-node.dimmed rect {
+    opacity: 0.15 !important;
+}
+.sankey-node.dimmed text {
+    opacity: 0.15 !important;
+}
 

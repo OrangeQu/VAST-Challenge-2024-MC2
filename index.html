@@ -201,6 +201,32 @@
         </div>
       </section>
 
+            <!-- ===== 新增：双弦图区块 ===== -->
+      <section class="bottom-stats glass-panel" id="chord-section" style="margin-top: 18px;">
+        <div class="bottom-stats-header">
+          <span class="zone-badge">🔗</span> 移动模式弦图
+          <span class="zone-subtitle">位置转移共现 · 主船(上) | 聚集船群聚合(下)</span>
+        </div>
+        <div class="chord-container-group" id="chord-container-group">
+          <div class="chord-card">
+            <div class="chord-card-title">
+              🚢 主船移动矩阵 
+              <span class="badge" id="mainChordTitle">—</span>
+            </div>
+            <div id="chord-main-viz" class="chord-viz"><div class="chord-placeholder">计算主船位置转移弦图...</div></div>
+            <div class="chord-note">弦宽 = 转移频次 (A→B) ，基于停留段位置序列</div>
+          </div>
+          <div class="chord-card">
+            <div class="chord-card-title">
+              👥 聚集船群聚合移动 
+              <span class="badge" id="clusterChordTitle">未聚类时无数据</span>
+            </div>
+            <div id="chord-cluster-viz" class="chord-viz"><div class="chord-placeholder">暂无聚集船只，请在聚类视图中框选船舶</div></div>
+            <div class="chord-note">基于所有聚集船停留位置聚合转移矩阵，动态更新</div>
+          </div>
+        </div>
+      </section>
+
     </div>
   </main>
 </body>

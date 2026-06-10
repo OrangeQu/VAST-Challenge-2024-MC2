@@ -513,6 +513,7 @@ function renderCluster() {
       renderEvidence();
       renderSimilar();
       renderStatsCompare();
+      renderChordCharts();  // 新增：聚类框选后立即刷新弦图
     });
 
   g.selectAll('.cluster-point').data(points).enter().append('circle')
@@ -878,6 +879,285 @@ function renderStatsCompare() {
 }
 
 // ============================================================
+// 弦图渲染模块（位置转移矩阵）
+// 颜色与图例保持一致：保护区#ef4444、渔区#f59e0b、港口#3b82f6、导航点#94a3b8、其他#10b981
+// ============================================================
+
+// 根据地点名称获取颜色（与图例一致）
+function getChordLocationColor(locationName) {
+  if (!locationName || typeof locationName !== 'string') return '#10b981';
+  const nameLower = locationName.toLowerCase().trim();
+  
+  const protectedKeywords = ['preserve', 'protected', 'sanctuary', 'ghoti preserve', 'don limpet preserve'];
+  for (let kw of protectedKeywords) {
+    if (nameLower.includes(kw)) return '#ef4444';
+  }
+  
+  const fishingKeywords = ['beds', 'reef', 'shelf', 'table', 'fishing', 'wrasse beds', 'cod table', 'nemo reef', 'tuna shelf'];
+  for (let kw of fishingKeywords) {
+    if (nameLower.includes(kw)) return '#f59e0b';
+  }
+  
+  const portKeywords = ['port', 'harbor', 'dock', 'himark', 'paackland', 'lomark', 'south paackland', 'haacklee', 'port grove'];
+  for (let kw of portKeywords) {
+    if (nameLower.includes(kw)) return '#3b82f6';
+  }
+  
+  const navKeywords = ['nav', 'exit', 'waypoint'];
+  for (let kw of navKeywords) {
+    if (nameLower.includes(kw)) return '#94a3b8';
+  }
+  
+  return '#10b981';
+}
+
+function getLocationCategory(locationName) {
+  const color = getChordLocationColor(locationName);
+  const colorMap = {
+    '#ef4444': '保护区',
+    '#f59e0b': '渔区',
+    '#3b82f6': '港口',
+    '#94a3b8': '导航点',
+    '#10b981': '其他'
+  };
+  return colorMap[color] || '其他';
+}
+
+// 从pings中提取位置序列（相邻去重）
+function getLocationSequenceFromPings(pings) {
+  if (!pings || pings.length === 0) return [];
+  const sorted = [...pings].sort((a, b) => new Date(a.time) - new Date(b.time));
+  const locations = [];
+  for (let i = 0; i < sorted.length; i++) {
+    const loc = sorted[i].location;
+    if (loc && typeof loc === 'string' && loc.trim() !== '') {
+      if (locations.length === 0 || locations[locations.length - 1] !== loc) {
+        locations.push(loc);
+      }
+    }
+  }
+  return locations;
+}
+
+// 构建转移矩阵
+function buildTransitionMatrix(locations) {
+  if (!locations.length) return { matrix: [], locationNames: [] };
+  const uniqueLocs = [];
+  const locSet = new Set();
+  for (let loc of locations) {
+    if (!locSet.has(loc)) {
+      locSet.add(loc);
+      uniqueLocs.push(loc);
+    }
+  }
+  const n = uniqueLocs.length;
+  const matrix = Array(n).fill().map(() => Array(n).fill(0));
+  for (let i = 0; i < locations.length - 1; i++) {
+    const fromIdx = uniqueLocs.indexOf(locations[i]);
+    const toIdx = uniqueLocs.indexOf(locations[i + 1]);
+    if (fromIdx !== -1 && toIdx !== -1) {
+      matrix[fromIdx][toIdx] += 1;
+    }
+  }
+  return { matrix, locationNames: uniqueLocs };
+}
+
+// 获取主船转移数据
+function getMainVesselTransitionData() {
+  if (!STATE.vesselId) return null;
+  const vessel = STATE.vesselById.get(STATE.vesselId);
+  if (!vessel) return null;
+  const pings = getFilteredPings(vessel.vessel_id);
+  if (!pings || pings.length === 0) return null;
+  const locSeq = getLocationSequenceFromPings(pings);
+  const { matrix, locationNames } = buildTransitionMatrix(locSeq);
+  return { matrix, locationNames, vesselName: vessel.vessel_name };
+}
+
+// 获取聚集船群聚合转移数据
+function getClusterAggregateTransition() {
+  let clusterIds = STATE.selectedVesselIds && STATE.selectedVesselIds.length 
+    ? [...STATE.selectedVesselIds] : [];
+  
+  if (STATE.vesselId && clusterIds.includes(STATE.vesselId)) {
+    clusterIds = clusterIds.filter(id => id !== STATE.vesselId);
+  }
+  
+  if (clusterIds.length === 0) return null;
+  
+  const clusterVessels = clusterIds.map(id => STATE.vesselById.get(id)).filter(Boolean);
+  if (clusterVessels.length === 0) return null;
+  
+  const aggregatedMatrixMap = new Map();
+  const allLocationSet = new Set();
+  
+  for (let v of clusterVessels) {
+    const pingsV = getFilteredPings(v.vessel_id);
+    if (!pingsV || pingsV.length < 2) continue;
+    const locSeqV = getLocationSequenceFromPings(pingsV);
+    if (locSeqV.length < 2) continue;
+    for (let i = 0; i < locSeqV.length - 1; i++) {
+      const fromLoc = locSeqV[i];
+      const toLoc = locSeqV[i + 1];
+      if (fromLoc && toLoc) {
+        const key = `${fromLoc}|${toLoc}`;
+        aggregatedMatrixMap.set(key, (aggregatedMatrixMap.get(key) || 0) + 1);
+        allLocationSet.add(fromLoc);
+        allLocationSet.add(toLoc);
+      }
+    }
+  }
+  
+  if (aggregatedMatrixMap.size === 0) return null;
+  
+  const locationNames = Array.from(allLocationSet).sort();
+  const n = locationNames.length;
+  const matrix = Array(n).fill().map(() => Array(n).fill(0));
+  const idxMap = new Map(locationNames.map((name, idx) => [name, idx]));
+  
+  for (let [key, count] of aggregatedMatrixMap.entries()) {
+    const [from, to] = key.split('|');
+    if (idxMap.has(from) && idxMap.has(to)) {
+      matrix[idxMap.get(from)][idxMap.get(to)] += count;
+    }
+  }
+  
+  return { matrix, locationNames, vesselCount: clusterVessels.length };
+}
+
+// 渲染单个弦图
+function renderSingleChordDiagram(containerId, matrix, locationNames) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  container.innerHTML = '';
+  
+  if (!matrix || matrix.length === 0 || matrix.every(row => row.every(v => v === 0))) {
+    container.innerHTML = '<div class="chord-placeholder">无有效位置转移数据</div>';
+    return;
+  }
+  
+  const width = Math.min(container.clientWidth - 24, 500);
+  const height = 260;
+  const outerRadius = Math.min(width, height) * 0.42;
+  const innerRadius = outerRadius * 0.75;
+  
+  const svg = d3.select(container)
+    .append('svg')
+    .attr('width', width)
+    .attr('height', height)
+    .append('g')
+    .attr('transform', `translate(${width / 2}, ${height / 2})`);
+  
+  const colorMap = new Map();
+  locationNames.forEach(name => {
+    colorMap.set(name, getChordLocationColor(name));
+  });
+  
+  const chordMatrix = matrix.map(row => [...row]);
+  const chordLayout = d3.chord()
+    .padAngle(0.05)
+    .sortSubgroups(d3.descending)
+    .sortChords(d3.descending);
+  
+  const chords = chordLayout(chordMatrix);
+  if (!chords || chords.length === 0) {
+    container.innerHTML = '<div class="chord-placeholder">无法构建弦图(数据稀疏)</div>';
+    return;
+  }
+  
+  const arc = d3.arc().innerRadius(innerRadius).outerRadius(outerRadius);
+  const ribbon = d3.ribbon().radius(innerRadius);
+  
+  const groupArc = svg.append('g')
+    .selectAll('g')
+    .data(chords.groups)
+    .enter()
+    .append('g');
+  
+  groupArc.append('path')
+    .attr('d', arc)
+    .attr('fill', d => colorMap.get(locationNames[d.index]))
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 1.2)
+    .style('cursor', 'pointer');
+  
+  groupArc.append('text')
+    .each(function(d) {
+      const name = locationNames[d.index];
+      const category = getLocationCategory(name);
+      const shortName = name.length > 12 ? name.slice(0, 10) + '..' : name;
+      const angle = (d.startAngle + d.endAngle) / 2;
+      const rad = outerRadius + 12;
+      const x = Math.cos(angle) * rad;
+      const y = Math.sin(angle) * rad;
+      d3.select(this)
+        .attr('transform', `translate(${x}, ${y})`)
+        .attr('dy', '0.32em')
+        .attr('text-anchor', x > 0 ? 'start' : 'end')
+        .style('font-size', '7px')
+        .style('fill', '#334155')
+        .style('font-weight', '500')
+        .text(`${shortName} (${category})`);
+    });
+  
+  svg.append('g')
+    .selectAll('path')
+    .data(chords)
+    .enter()
+    .append('path')
+    .attr('d', ribbon)
+    .attr('fill', d => colorMap.get(locationNames[d.source.index]))
+    .attr('opacity', 0.65)
+    .attr('stroke', '#fff')
+    .attr('stroke-width', 0.4)
+    .append('title')
+    .text(d => {
+      const fromLoc = locationNames[d.source.index];
+      const toLoc = locationNames[d.target.index];
+      const count = matrix[d.source.index][d.target.index];
+      const fromCat = getLocationCategory(fromLoc);
+      const toCat = getLocationCategory(toLoc);
+      return `${fromLoc} [${fromCat}] → ${toLoc} [${toCat}] : ${count} 次转移`;
+    });
+  
+  groupArc.append('title').text(d => {
+    const name = locationNames[d.index];
+    const cat = getLocationCategory(name);
+    const totalOut = matrix[d.index].reduce((a, b) => a + b, 0);
+    return `${name} [${cat}]\n总转出次数: ${totalOut}`;
+  });
+}
+
+// 渲染双弦图
+function renderChordCharts() {
+  const mainData = getMainVesselTransitionData();
+  const mainTitleSpan = document.getElementById('mainChordTitle');
+  if (mainData && mainData.matrix && mainData.locationNames.length > 0) {
+    if (mainTitleSpan) mainTitleSpan.innerText = mainData.vesselName || '主船';
+    renderSingleChordDiagram('chord-main-viz', mainData.matrix, mainData.locationNames);
+  } else {
+    if (mainTitleSpan) mainTitleSpan.innerText = '无轨迹数据';
+    const mainContainer = document.getElementById('chord-main-viz');
+    if (mainContainer) mainContainer.innerHTML = '<div class="chord-placeholder">主船无有效停留位置轨迹</div>';
+  }
+  
+  const clusterData = getClusterAggregateTransition();
+  const clusterTitleSpan = document.getElementById('clusterChordTitle');
+  const clusterContainer = document.getElementById('chord-cluster-viz');
+  
+  if (clusterData && clusterData.matrix && clusterData.locationNames.length > 0 && 
+      clusterData.matrix.some(row => row.some(v => v > 0))) {
+    if (clusterTitleSpan) clusterTitleSpan.innerText = `已聚合 ${clusterData.vesselCount} 艘船`;
+    renderSingleChordDiagram('chord-cluster-viz', clusterData.matrix, clusterData.locationNames);
+  } else {
+    if (clusterTitleSpan) clusterTitleSpan.innerText = '未聚类时无数据';
+    if (clusterContainer) {
+      clusterContainer.innerHTML = '<div class="chord-placeholder">暂无聚集船只，请在聚类视图中框选船舶</div>';
+    }
+  }
+}
+
+// ============================================================
 // 刷新 & 事件绑定
 // ============================================================
 function refreshAll(options) {
@@ -892,6 +1172,7 @@ function refreshAll(options) {
   renderEvidence();
   renderSimilar();
   renderStatsCompare();
+  renderChordCharts();  // 新增：渲染弦图
 }
 
 function initDashboard() {

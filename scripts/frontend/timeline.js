@@ -375,10 +375,10 @@
         }
       });
 
-      // 在色块上方标注编码字母
+      // 在色块上方标注编码字母（与色块使用相同的结束时间）
       seq.forEach((d, i) => {
         const x = xScale(d.time);
-        const nextTime = i < seq.length - 1 ? seq[i + 1].time : endDate;
+        const nextTime = i < seq.length - 1 ? seq[i + 1].time : ownEnd;
         const xEnd = xScale(nextTime);
         const w = xEnd - x;
         if (x < innerW && w > 6) {

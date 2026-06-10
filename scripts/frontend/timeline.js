@@ -31,14 +31,16 @@
       pings: getFilteredPings(v.vessel_id) || []
     })).filter(d => d.pings.length > 0);
 
-    if (!mainPings || mainPings.length === 0) {
+    // ---- 时间范围（取主船和聚集船群的全集） ----
+    let allPings = [];
+    if (mainPings && mainPings.length > 0) allPings = [...mainPings];
+    clusterPingsList.forEach(d => { allPings = allPings.concat(d.pings); });
+
+    // 如果完全没有数据（主船和聚集船都没有），才显示无数据提示
+    if (allPings.length === 0) {
       container.innerHTML = '<div class="loading" style="min-height:200px">该船舶暂无定位数据</div>';
       return;
     }
-
-    // ---- 时间范围（取主船和聚集船群的全集） ----
-    let allPings = [...mainPings];
-    clusterPingsList.forEach(d => { allPings = allPings.concat(d.pings); });
     const timeExtent = d3.extent(allPings, d => new Date(d.time));
     const startDate = timeExtent[0];
     const endDate = timeExtent[1];

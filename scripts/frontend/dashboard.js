@@ -36,7 +36,8 @@ const STATE = {
   // 时间范围（实际过滤用）
   timeRange: null, // { start: Date, end: Date }
   // 曝光日期（用于时间预设）
-  exposureDate: new Date('2035-08-01'),
+  // SouthSeafood 最后活动时间为 2035-05-14，之后船只停止活动，故曝光日期设为 2035-05-15
+  exposureDate: new Date('2035-05-15'),
   // 自定义时间区间
   customTimeStart: null, // Date
   customTimeEnd: null,   // Date

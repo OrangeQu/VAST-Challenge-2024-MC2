@@ -288,7 +288,7 @@
     currentY += e1 + layerGap;
 
     // ================================================================
-    // 第2层：移动模式 — 主船 vs 聚集船群聚合（两行）
+    // 第2层：移动模式 — 位置编码序列（主船）+ 位置分布热力图（聚集船群）
     // ================================================================
     const e2 = layerHeights.e2;
     g.append('rect').attr('x', 0).attr('y', currentY).attr('width', innerW).attr('height', e2)
@@ -301,49 +301,145 @@
 
     const rowH2 = Math.min(22, (e2 - 30) / 2);
 
-    // 第1行：主船轨迹
-    drawDwellRow(currentY + 24, rowH2, mainPings,
+    // ---- 辅助函数：获取位置类型编码 ----
+    function getLocCode(location) {
+      if (!location) return 'O';
+      const loc = location.toLowerCase().trim();
+      if (loc.includes('preserve') || loc.includes('nemo reef')) return 'P';
+      if (loc.includes('wrasse') || loc.includes('cod') || loc.includes('tuna')) return 'F';
+      if (loc.includes('himark') || loc.includes('paackland') || loc.includes('lomark') || loc.includes('haacklee') || loc.includes('port grove')) return 'C';
+      return 'O';
+    }
+    const codeColors = { 'P': '#ef4444', 'F': '#f59e0b', 'C': '#3b82f6', 'O': '#94a3b8' };
+    const codeLabels = { 'P': '保护区', 'F': '渔场', 'C': '城市/港口', 'O': '其他' };
+
+    // ---- 第1行：主船的位置编码序列 ----
+    function drawCodeSequence(y, rowH, pings, label, labelColor, isMain) {
+      const barH = Math.max(8, rowH - 4);
+      g.append('text').attr('x', -8).attr('y', y + barH / 2 + 3)
+        .attr('text-anchor', 'end').attr('font-size', '7px')
+        .attr('fill', labelColor || '#1e293b').attr('font-weight', isMain ? '800' : '600')
+        .text(label);
+
+      // 过滤并排序pings
+      let filteredPings = pings.filter(p => {
+        if (STATE.filterProtected && !isProtectedPing(p)) return false;
+        if (STATE.location !== 'all') {
+          const locTrim = p.location?.trim().toLowerCase() || '';
+          const filterTrim = STATE.location.trim().toLowerCase();
+          if (locTrim !== filterTrim) return false;
+        }
+        return true;
+      }).sort((a, b) => new Date(a.time) - new Date(b.time));
+
+      if (filteredPings.length === 0) {
+        g.append('text').attr('x', 4).attr('y', y + barH / 2 + 3)
+          .attr('font-size', '7px').attr('fill', '#94a3b8').text('无数据');
+        return;
+      }
+
+      // 对连续相同编码去重（减少视觉杂乱）
+      const seq = filteredPings.map(p => ({
+        time: new Date(p.time),
+        code: getLocCode(p.location),
+        location: p.location,
+        dwell: p.dwell || 0
+      })).filter((d, i, arr) => i === 0 || d.code !== arr[i - 1].code);
+
+      if (seq.length === 0) return;
+
+      // 绘制编码色块（每个编码段一个色块）
+      seq.forEach((d, i) => {
+        const x = xScale(d.time);
+        const nextTime = i < seq.length - 1 ? seq[i + 1].time : endDate;
+        const xEnd = xScale(nextTime);
+        const w = Math.max(1, xEnd - x);
+        if (x < innerW && w > 0) {
+          const inProtected = d.code === 'P';
+          const fillColor = inProtected ? '#ef4444' : codeColors[d.code] || '#94a3b8';
+          const opacity = inProtected ? 0.9 : (isMain ? 0.8 : 0.65);
+          g.append('rect').attr('x', x).attr('y', y).attr('width', w).attr('height', barH)
+            .attr('fill', fillColor).attr('opacity', opacity).attr('rx', 1)
+            .attr('stroke', inProtected ? '#991b1b' : 'none').attr('stroke-width', inProtected ? 0.6 : 0)
+            .append('title')
+            .text([
+              label,
+              '编码: ' + d.code + ' (' + (codeLabels[d.code] || '其他') + ')',
+              '地点: ' + d.location,
+              '时间: ' + d.time.toISOString().slice(0, 16),
+              '停留: ' + (d.dwell / 3600).toFixed(1) + 'h'
+            ].join('\n'));
+        }
+      });
+
+      // 在色块上方标注编码字母
+      seq.forEach((d, i) => {
+        const x = xScale(d.time);
+        const nextTime = i < seq.length - 1 ? seq[i + 1].time : endDate;
+        const xEnd = xScale(nextTime);
+        const w = xEnd - x;
+        if (x < innerW && w > 6) {
+          g.append('text').attr('x', x + 2).attr('y', y + barH / 2 + 3)
+            .attr('font-size', '7px').attr('font-weight', '700')
+            .attr('fill', d.code === 'P' ? '#fff' : '#1e293b')
+            .text(d.code);
+        }
+      });
+    }
+
+    // 第1行：主船的位置编码序列
+    drawCodeSequence(currentY + 24, rowH2, mainPings,
       '🔴 ' + mainVessel.vessel_name.slice(0, 14), '#e11d48', true);
 
-    // 第2行：聚集船群聚合（按时间+位置聚合，透明度=密度）
+    // ---- 第2行：聚集船群的位置分布热力图 ----
     if (clusterPingsList.length > 0) {
       const y2 = currentY + 24 + rowH2;
       const barH2 = Math.max(8, rowH2 - 4);
       g.append('text').attr('x', -8).attr('y', y2 + barH2 / 2 + 3)
         .attr('text-anchor', 'end').attr('font-size', '7px')
         .attr('fill', '#0ea5e9').attr('font-weight', '700')
-        .text('🔵 船群聚合 (' + clusterPingsList.length + '艘)');
+        .text('🔵 船群分布 (' + clusterPingsList.length + '艘)');
 
-      // 把所有聚集船的pings按时间分桶，统计每个位置的出现次数
+      // 把所有聚集船的pings按时间分桶，统计每个编码类型的出现次数
       const timeBuckets = {};
       clusterPingsList.forEach(d => {
         d.pings.forEach(p => {
-          // 应用"仅保护区"过滤，与第1层保持一致
           if (STATE.filterProtected && !isProtectedPing(p)) return;
           const t = new Date(p.time);
           const bucketKey = Math.floor(t.getTime() / (24 * 60 * 60 * 1000)); // 按天分桶
           if (!timeBuckets[bucketKey]) timeBuckets[bucketKey] = {};
-          if (!timeBuckets[bucketKey][p.location]) timeBuckets[bucketKey][p.location] = 0;
-          timeBuckets[bucketKey][p.location]++;
+          const code = getLocCode(p.location);
+          if (!timeBuckets[bucketKey][code]) timeBuckets[bucketKey][code] = 0;
+          timeBuckets[bucketKey][code]++;
         });
       });
 
-      // 绘制聚合色块
-      Object.entries(timeBuckets).forEach(([bucketKey, locs]) => {
+      // 绘制堆叠色带（按编码类型堆叠，宽度按时间比例）
+      Object.entries(timeBuckets).forEach(([bucketKey, codes]) => {
         const t = new Date(parseInt(bucketKey) * 24 * 60 * 60 * 1000);
-        const total = Object.values(locs).reduce((a, b) => a + b, 0);
+        const total = Object.values(codes).reduce((a, b) => a + b, 0);
         const x = xScale(t);
         if (x < 0 || x > innerW) return;
-        // 按位置数量分配宽度
-        const locEntries = Object.entries(locs);
-        const totalWidth = Math.max(4, Math.min(innerW - x, 20));
-        locEntries.forEach(([loc, count], li) => {
-          const w = totalWidth * (count / total);
+        // 用时间比例尺计算一天的长度
+        const dayEnd = new Date(t.getTime() + 24 * 60 * 60 * 1000);
+        const dayWidth = xScale(dayEnd) - xScale(t);
+        const totalWidth = Math.max(2, Math.min(dayWidth, innerW - x));
+
+        // 按编码类型堆叠（P优先显示在最上层）
+        const codeOrder = ['P', 'F', 'C', 'O'];
+        let accumulatedY = y2;
+        codeOrder.forEach(code => {
+          const count = codes[code] || 0;
+          if (count === 0) return;
+          const h = barH2 * (count / total);
           const opacity = 0.3 + 0.5 * (count / total);
-          g.append('rect').attr('x', x).attr('y', y2).attr('width', w).attr('height', barH2)
-            .attr('fill', getLocColor(loc)).attr('opacity', opacity).attr('rx', 1)
+          g.append('rect').attr('x', x).attr('y', accumulatedY)
+            .attr('width', totalWidth).attr('height', Math.max(1, h))
+            .attr('fill', codeColors[code] || '#94a3b8')
+            .attr('opacity', opacity).attr('rx', 0.5)
             .append('title')
-            .text(loc + '\n船数: ' + count + '/' + total + '\n日期: ' + t.toISOString().slice(0, 10));
+            .text(codeLabels[code] || code + '\n船数: ' + count + '/' + total + '\n日期: ' + t.toISOString().slice(0, 10));
+          accumulatedY += h;
         });
       });
     } else {

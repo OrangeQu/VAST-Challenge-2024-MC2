@@ -46,6 +46,15 @@
     const endDate = timeExtent[1];
     const xScale = d3.scaleTime().domain([startDate, endDate]).range([0, innerW]);
 
+    // ---- 从 geography 中提取保护区名称列表 ----
+    const protectedAreaNames = new Set();
+    if (Array.isArray(STATE.geography?.protected_areas)) {
+      STATE.geography.protected_areas.forEach(area => {
+        if (area.name) protectedAreaNames.add(area.name.toLowerCase().trim());
+        if (area.properties?.name) protectedAreaNames.add(area.properties.name.toLowerCase().trim());
+      });
+    }
+
     // ---- 位置颜色映射 ----
     const locationColorMap = {
       'Himark': '#3b82f6', 'Paackland': '#3b82f6', 'Lomark': '#3b82f6',
@@ -127,8 +136,15 @@
     function isProtectedPing(p) {
       if (!p) return false;
       if (p.loc_type === 'protected' || p.is_protected === true) return true;
-      // 按地点名称判断：保护区的名称包含 Preserve
-      if (p.location && p.location.includes('Preserve')) return true;
+      // 按地点名称判断：保护区的名称包含 Preserve 或匹配 geography 中的保护区名称
+      if (p.location) {
+        const locLower = p.location.toLowerCase().trim();
+        if (locLower.includes('preserve')) return true;
+        if (protectedAreaNames.has(locLower)) return true;
+        for (const name of protectedAreaNames) {
+          if (locLower.includes(name) || name.includes(locLower)) return true;
+        }
+      }
       const lon = typeof p.lon === 'number' ? p.lon : Number(p.lon);
       const lat = typeof p.lat === 'number' ? p.lat : Number(p.lat);
       if (!Number.isFinite(lon) || !Number.isFinite(lat)) return false;
@@ -155,6 +171,19 @@
             .attr('font-size', '8px').attr('fill', '#64748b')
             .text((mc.getMonth() + 1) + '月');
         }
+      }
+    }
+
+    // ---- 绘制曝光日期参考线 ----
+    function drawExposureLine(yStart, yEnd) {
+      const exposureDate = STATE.exposureDate;
+      if (exposureDate >= startDate && exposureDate <= endDate) {
+        const x = xScale(exposureDate);
+        g.append('line').attr('x1', x).attr('y1', yStart).attr('x2', x).attr('y2', yEnd)
+          .attr('stroke', '#ef4444').attr('stroke-dasharray', '6,3').attr('stroke-width', 1.5);
+        g.append('text').attr('x', x + 3).attr('y', yStart + 12)
+          .attr('font-size', '8px').attr('fill', '#ef4444').attr('font-weight', '700')
+          .text('📢 曝光日');
       }
     }
 
@@ -192,7 +221,9 @@
           const t = new Date(p.time);
           const dwellH = (p.dwell || 0) / 3600;
           const x = xScale(t);
-          const w = Math.max(2, Math.min(innerW - x, dwellH * 3));
+          // 修复：用时间比例尺计算停留色块宽度
+          const dwellEnd = new Date(t.getTime() + (p.dwell || 0) * 1000);
+          const w = Math.max(1, xScale(dwellEnd) - xScale(t));
           if (x < innerW && w > 0) {
             const inProtected = isProtectedPing(p);
             const fillColor = inProtected ? '#ef4444' : baseColor;
@@ -236,6 +267,7 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('📍 位置与停留' + (STATE.location !== 'all' ? '  |  筛选: ' + STATE.location : '') + (STATE.filterProtected ? '  |  🛡️ 仅保护区' : ''));
     drawMonthLines(currentY, currentY + e1);
+    drawExposureLine(currentY, currentY + e1);
 
     // 计算行数：主船 + 聚集船
     const totalRows1 = 1 + clusterPingsList.length;
@@ -265,6 +297,7 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('🚢 移动模式');
     drawMonthLines(currentY, currentY + e2);
+    drawExposureLine(currentY, currentY + e2);
 
     const rowH2 = Math.min(22, (e2 - 30) / 2);
 
@@ -333,6 +366,7 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('📦 港口报告');
     drawMonthLines(currentY, currentY + e3);
+    drawExposureLine(currentY, currentY + e3);
 
     // 获取所有报告
     const reports = STATE.deliveryLinks || [];
@@ -480,6 +514,7 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('🏷️ 商品关联');
     drawMonthLines(currentY, currentY + e4);
+    drawExposureLine(currentY, currentY + e4);
 
     const commodityColors = {
       'Seafood': '#b91c1c', 'Dry Goods': '#c2410c', 'Electronics': '#b91c1c',
@@ -719,6 +754,7 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('📈 交易趋势');
     drawMonthLines(currentY, currentY + e5);
+    drawExposureLine(currentY, currentY + e5);
 
     // 按天聚合交易量
     function getDailyTons(reports) {

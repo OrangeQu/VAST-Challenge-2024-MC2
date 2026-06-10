@@ -403,24 +403,26 @@
         .attr('fill', '#0ea5e9').attr('font-weight', '700')
         .text('🔵 船群分布 (' + clusterPingsList.length + '艘)');
 
-      // 把所有聚集船的pings按时间分桶，统计每个编码类型的出现次数
+      // 把所有聚集船的pings按时间分桶，按停留时长（秒）聚合每个编码类型
       const timeBuckets = {};
       clusterPingsList.forEach(d => {
         d.pings.forEach(p => {
           if (STATE.filterProtected && !isProtectedPing(p)) return;
+          const dwell = p.dwell || 0;
+          if (dwell <= 0) return; // 只考虑有停留的ping
           const t = new Date(p.time);
           const bucketKey = Math.floor(t.getTime() / (24 * 60 * 60 * 1000)); // 按天分桶
           if (!timeBuckets[bucketKey]) timeBuckets[bucketKey] = {};
           const code = getLocCode(p.location);
-          if (!timeBuckets[bucketKey][code]) timeBuckets[bucketKey][code] = 0;
-          timeBuckets[bucketKey][code]++;
+          // 用停留时长（秒）代替 ping 计数
+          timeBuckets[bucketKey][code] = (timeBuckets[bucketKey][code] || 0) + dwell;
         });
       });
 
       // 绘制堆叠色带（按编码类型堆叠，宽度按时间比例）
       Object.entries(timeBuckets).forEach(([bucketKey, codes]) => {
         const t = new Date(parseInt(bucketKey) * 24 * 60 * 60 * 1000);
-        const total = Object.values(codes).reduce((a, b) => a + b, 0);
+        const totalDwell = Object.values(codes).reduce((a, b) => a + b, 0);
         const x = xScale(t);
         if (x < 0 || x > innerW) return;
         // 用时间比例尺计算一天的长度
@@ -432,16 +434,16 @@
         const codeOrder = ['P', 'F', 'C', 'O'];
         let accumulatedY = y2;
         codeOrder.forEach(code => {
-          const count = codes[code] || 0;
-          if (count === 0) return;
-          const h = barH2 * (count / total);
-          const opacity = 0.3 + 0.5 * (count / total);
+          const dwellSeconds = codes[code] || 0;
+          if (dwellSeconds === 0) return;
+          const h = barH2 * (dwellSeconds / totalDwell);
+          const opacity = 0.3 + 0.5 * (dwellSeconds / totalDwell);
           g.append('rect').attr('x', x).attr('y', accumulatedY)
             .attr('width', totalWidth).attr('height', Math.max(1, h))
             .attr('fill', codeColors[code] || '#94a3b8')
             .attr('opacity', opacity).attr('rx', 0.5)
             .append('title')
-            .text(codeLabels[code] || code + '\n船数: ' + count + '/' + total + '\n日期: ' + t.toISOString().slice(0, 10));
+            .text(codeLabels[code] || code + '\n停留时长: ' + (dwellSeconds / 3600).toFixed(1) + 'h\n占比: ' + (dwellSeconds / totalDwell * 100).toFixed(0) + '%\n日期: ' + t.toISOString().slice(0, 10));
           accumulatedY += h;
         });
       });

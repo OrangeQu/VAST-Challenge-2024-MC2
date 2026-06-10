@@ -348,10 +348,13 @@
 
       if (seq.length === 0) return;
 
+      // 用该船自己的最后一个 ping 时间作为结束，而不是全局 endDate
+      const ownEnd = d3.max(filteredPings, p => new Date(p.time));
+
       // 绘制编码色块（每个编码段一个色块）
       seq.forEach((d, i) => {
         const x = xScale(d.time);
-        const nextTime = i < seq.length - 1 ? seq[i + 1].time : endDate;
+        const nextTime = i < seq.length - 1 ? seq[i + 1].time : ownEnd;
         const xEnd = xScale(nextTime);
         const w = Math.max(1, xEnd - x);
         if (x < innerW && w > 0) {

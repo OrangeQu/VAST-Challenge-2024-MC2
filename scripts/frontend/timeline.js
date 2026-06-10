@@ -318,6 +318,8 @@
       const timeBuckets = {};
       clusterPingsList.forEach(d => {
         d.pings.forEach(p => {
+          // 应用"仅保护区"过滤，与第1层保持一致
+          if (STATE.filterProtected && !isProtectedPing(p)) return;
           const t = new Date(p.time);
           const bucketKey = Math.floor(t.getTime() / (24 * 60 * 60 * 1000)); // 按天分桶
           if (!timeBuckets[bucketKey]) timeBuckets[bucketKey] = {};

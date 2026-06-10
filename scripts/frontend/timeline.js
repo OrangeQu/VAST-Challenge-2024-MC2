@@ -407,7 +407,14 @@
       const timeBuckets = {};
       clusterPingsList.forEach(d => {
         d.pings.forEach(p => {
+          // 应用"仅保护区"过滤
           if (STATE.filterProtected && !isProtectedPing(p)) return;
+          // 应用地点筛选（与第1层保持一致）
+          if (STATE.location !== 'all') {
+            const locTrim = p.location?.trim().toLowerCase() || '';
+            const filterTrim = STATE.location.trim().toLowerCase();
+            if (locTrim !== filterTrim) return;
+          }
           const dwell = p.dwell || 0;
           if (dwell <= 0) return; // 只考虑有停留的ping
           const t = new Date(p.time);
@@ -433,13 +440,16 @@
         // 按编码类型堆叠（P优先显示在最上层）
         const codeOrder = ['P', 'F', 'C', 'O'];
         let accumulatedY = y2;
-        codeOrder.forEach(code => {
+        const remainingH = barH2; // 剩余可用高度
+        codeOrder.forEach((code, ci) => {
           const dwellSeconds = codes[code] || 0;
           if (dwellSeconds === 0) return;
-          const h = barH2 * (dwellSeconds / totalDwell);
+          const isLast = ci === codeOrder.length - 1 || codeOrder.slice(ci + 1).every(c => !codes[c] || codes[c] === 0);
+          // 如果是最后一个有数据的编码，用剩余高度避免浮点数精度问题
+          const h = isLast ? Math.max(1, y2 + barH2 - accumulatedY) : Math.max(1, barH2 * (dwellSeconds / totalDwell));
           const opacity = 0.3 + 0.5 * (dwellSeconds / totalDwell);
           g.append('rect').attr('x', x).attr('y', accumulatedY)
-            .attr('width', totalWidth).attr('height', Math.max(1, h))
+            .attr('width', totalWidth).attr('height', Math.min(h, y2 + barH2 - accumulatedY))
             .attr('fill', codeColors[code] || '#94a3b8')
             .attr('opacity', opacity).attr('rx', 0.5)
             .append('title')

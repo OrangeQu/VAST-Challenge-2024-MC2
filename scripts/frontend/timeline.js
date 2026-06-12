@@ -57,13 +57,12 @@
 
     // ---- 位置颜色映射 ----
     const locationColorMap = {
-      'Himark': '#3b82f6', 'Paackland': '#3b82f6', 'Lomark': '#3b82f6',
-      'South Paackland': '#3b82f6', 'Haacklee': '#3b82f6', 'Port Grove': '#3b82f6',
-      'Ghoti Preserve': '#ef4444', 'Don Limpet Preserve': '#ef4444',
-      'Wrasse Beds': '#f59e0b',
-      'Cod Table': '#f59e0b',
-      'Nemo Reef': '#f59e0b',
-      'Tuna Shelf': '#f59e0b',
+      'Himark': '#f59e0b', 'Paackland': '#f59e0b', 'Lomark': '#f59e0b',
+      'South Paackland': '#f59e0b', 'Haacklee': '#f59e0b', 'Port Grove': '#f59e0b',
+      'Ghoti Preserve': '#ef4444', 'Nemo Reef': '#ef4444', 'Don Limpet Preserve': '#ef4444',
+      'Wrasse Beds': '#3b82f6',
+      'Cod Table': '#3b82f6',
+      'Tuna Shelf': '#3b82f6',
       'Nav 1': '#94a3b8', 'Nav 2': '#94a3b8', 'Nav 3': '#94a3b8',
       'Nav A': '#94a3b8', 'Nav B': '#94a3b8', 'Nav C': '#94a3b8',
       'Nav D': '#94a3b8', 'Nav E': '#94a3b8',
@@ -78,8 +77,8 @@
       return '#10b981';
     }
     function getLocLabel(loc) {
-      if (loc === 'Ghoti Preserve' || loc === 'Don Limpet Preserve') return '🔴 ' + loc;
-      if (loc === 'Wrasse Beds' || loc === 'Cod Table' || loc === 'Nemo Reef' || loc === 'Tuna Shelf') return '🟠 ' + loc;
+      if (loc === 'Ghoti Preserve' || loc === 'Nemo Reef' || loc === 'Don Limpet Preserve') return '🔴 ' + loc;
+      if (loc === 'Wrasse Beds' || loc === 'Cod Table' || loc === 'Tuna Shelf') return '🟠 ' + loc;
       if (loc?.startsWith('Nav') || loc?.startsWith('Exit')) return '⚪ ' + loc;
       return '🔵 ' + loc;
     }
@@ -230,7 +229,7 @@
             const opacity = inProtected ? (isMain ? 0.95 : 0.85) : (isMain ? 0.9 : 0.7);
             const strokeColor = inProtected ? '#991b1b' : 'none';
             const tooltipLines = [
-              inProtected ? '保护区' : (locData.location || '未知位置'),
+              inProtected ? ('🛡️ ' + (locData.location || '保护区')) : (locData.location || '未知位置'),
               label,
               '时间: ' + p.time,
               '停留: ' + dwellH.toFixed(1) + 'h'
@@ -310,7 +309,7 @@
       if (loc.includes('himark') || loc.includes('paackland') || loc.includes('lomark') || loc.includes('haacklee') || loc.includes('port grove')) return 'C';
       return 'O';
     }
-    const codeColors = { 'P': '#ef4444', 'F': '#f59e0b', 'C': '#3b82f6', 'O': '#94a3b8' };
+    const codeColors = { 'P': '#ef4444', 'F': '#3b82f6', 'C': '#f59e0b', 'O': '#94a3b8' };
     const codeLabels = { 'P': '保护区', 'F': '渔场', 'C': '城市/港口', 'O': '其他' };
 
     // ---- 第1行：主船的位置编码序列 ----
@@ -375,19 +374,6 @@
         }
       });
 
-      // 在色块上方标注编码字母（与色块使用相同的结束时间）
-      seq.forEach((d, i) => {
-        const x = xScale(d.time);
-        const nextTime = i < seq.length - 1 ? seq[i + 1].time : ownEnd;
-        const xEnd = xScale(nextTime);
-        const w = xEnd - x;
-        if (x < innerW && w > 6) {
-          g.append('text').attr('x', x + 2).attr('y', y + barH / 2 + 3)
-            .attr('font-size', '7px').attr('font-weight', '700')
-            .attr('fill', d.code === 'P' ? '#fff' : '#1e293b')
-            .text(d.code);
-        }
-      });
     }
 
     // 第1行：主船的位置编码序列

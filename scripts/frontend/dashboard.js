@@ -807,11 +807,11 @@ function renderMap() {
       .attr('fill', 'rgba(59,130,246,.10)').attr('stroke', '#3b82f6').attr('stroke-width', 1.1);
   });
 
-  // 城市
+  // 城市（橙色，与图例中"港口/城市"一致）
   STATE.geography.cities?.forEach(c => {
     const [cx, cy] = c.coordinates;
     g.append('circle').attr('cx', x(cx)).attr('cy', y(cy)).attr('r', 4.2)
-      .attr('fill', '#8b5cf6').attr('stroke', '#fff').attr('stroke-width', 1.5);
+      .attr('fill', '#f59e0b').attr('stroke', '#fff').attr('stroke-width', 1.5);
   });
 
   // 岛屿（多边形）
@@ -879,13 +879,13 @@ function drawSingleTrajectory(g, x, y) {
     .style('cursor', 'pointer');
   path.append('title').text(vessel.vessel_name + ' · ' + pings.length + ' 个定位点');
 
-  // 停留点（可点击）
+  // 停留点（可点击）- 颜色使用 getChordLocationColor 与图例保持一致
   const dwellPings = validPings.filter(p => pingDwellHours(p) > 0);
   g.selectAll('.dwell-point').data(dwellPings).enter().append('circle')
     .attr('class', 'dwell-point')
     .attr('cx', d => x(pingLon(d))).attr('cy', d => y(pingLat(d)))
     .attr('r', d => Math.min(8, 2 + pingDwellHours(d) * 0.5))
-    .attr('fill', d => d.loc_type === 'protected' ? '#ef4444' : '#f59e0b')
+    .attr('fill', d => getChordLocationColor(d.location))
     .attr('opacity', .7).attr('stroke', '#fff').attr('stroke-width', 1.2)
     .style('cursor', 'pointer')
     .append('title').text(d => d.location + ' · 停留 ' + pingDwellHours(d).toFixed(1) + 'h · ' + d.time);
@@ -1378,19 +1378,19 @@ function getChordLocationColor(locationName) {
   if (!locationName || typeof locationName !== 'string') return '#10b981';
   const nameLower = locationName.toLowerCase().trim();
   
-  const protectedKeywords = ['preserve', 'protected', 'sanctuary', 'ghoti preserve', 'don limpet preserve'];
+  const protectedKeywords = ['preserve', 'protected', 'sanctuary', 'ghoti preserve', 'don limpet preserve', 'nemo reef'];
   for (let kw of protectedKeywords) {
     if (nameLower.includes(kw)) return '#ef4444';
   }
   
-  const fishingKeywords = ['beds', 'reef', 'shelf', 'table', 'fishing', 'wrasse beds', 'cod table', 'nemo reef', 'tuna shelf'];
+  const fishingKeywords = ['beds', 'reef', 'shelf', 'table', 'fishing', 'wrasse beds', 'cod table', 'tuna shelf'];
   for (let kw of fishingKeywords) {
-    if (nameLower.includes(kw)) return '#f59e0b';
+    if (nameLower.includes(kw)) return '#3b82f6';
   }
   
   const portKeywords = ['port', 'harbor', 'dock', 'himark', 'paackland', 'lomark', 'south paackland', 'haacklee', 'port grove'];
   for (let kw of portKeywords) {
-    if (nameLower.includes(kw)) return '#3b82f6';
+    if (nameLower.includes(kw)) return '#f59e0b';
   }
   
   const navKeywords = ['nav', 'exit', 'waypoint'];
@@ -1405,8 +1405,8 @@ function getLocationCategory(locationName) {
   const color = getChordLocationColor(locationName);
   const colorMap = {
     '#ef4444': '保护区',
-    '#f59e0b': '渔区',
-    '#3b82f6': '港口',
+    '#3b82f6': '渔区',
+    '#f59e0b': '港口/城市',
     '#94a3b8': '导航点',
     '#10b981': '其他'
   };
@@ -1571,24 +1571,7 @@ function renderSingleChordDiagram(containerId, matrix, locationNames) {
     .attr('stroke-width', 1.2)
     .style('cursor', 'pointer');
   
-  groupArc.append('text')
-    .each(function(d) {
-      const name = locationNames[d.index];
-      const category = getLocationCategory(name);
-      const shortName = name.length > 12 ? name.slice(0, 10) + '..' : name;
-      const angle = (d.startAngle + d.endAngle) / 2;
-      const rad = outerRadius + 12;
-      const x = Math.cos(angle) * rad;
-      const y = Math.sin(angle) * rad;
-      d3.select(this)
-        .attr('transform', `translate(${x}, ${y})`)
-        .attr('dy', '0.32em')
-        .attr('text-anchor', x > 0 ? 'start' : 'end')
-        .style('font-size', '7px')
-        .style('fill', '#334155')
-        .style('font-weight', '500')
-        .text(`${shortName} (${category})`);
-    });
+  // 不添加指引线和文字标签，仅保留圆弧本身
   
   svg.append('g')
     .selectAll('path')

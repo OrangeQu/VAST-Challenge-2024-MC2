@@ -93,19 +93,24 @@
         <div class="filter-bar-inner">
           <div class="filter-group">
             <label>🚢 船舶筛选</label>
-            <select id="vessel-select" class="filter-select"></select>
+            <div class="autocomplete-wrap" id="vessel-autocomplete">
+              <input type="text" id="vessel-input" class="filter-select autocomplete-input" placeholder="输入船名搜索..." autocomplete="off">
+              <div class="autocomplete-dropdown" id="vessel-dropdown"></div>
+            </div>
           </div>
           <div class="filter-group">
             <label>📍 地点筛选</label>
-            <select id="location-select" class="filter-select">
-              <option value="all">全部位置</option>
-            </select>
+            <div class="autocomplete-wrap" id="location-autocomplete">
+              <input type="text" id="location-input" class="filter-select autocomplete-input" placeholder="全部位置" autocomplete="off" readonly>
+              <div class="autocomplete-dropdown" id="location-dropdown"></div>
+            </div>
           </div>
           <div class="filter-group">
             <label>📦 商品筛选</label>
-            <select id="commodity-select" class="filter-select">
-              <option value="all">全部商品</option>
-            </select>
+            <div class="autocomplete-wrap" id="commodity-autocomplete">
+              <input type="text" id="commodity-input" class="filter-select autocomplete-input" placeholder="全部商品" autocomplete="off" readonly>
+              <div class="autocomplete-dropdown" id="commodity-dropdown"></div>
+            </div>
           </div>
           <div class="filter-group">
             <label>⚙️ 快速过滤</label>

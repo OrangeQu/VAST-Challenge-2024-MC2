@@ -187,46 +187,421 @@ function renderTopBar() {
 // ============================================================
 // 渲染：左侧筛选
 // ============================================================
-function renderFilters() {
-  const vesselSelect = document.getElementById('vessel-select');
-  vesselSelect.innerHTML = '';
-  const seedFleet = STATE.vessels.filter(v => STATE.seedIds.has(v.vessel_id));
-  const nonSeed = STATE.vessels.filter(v => !STATE.seedIds.has(v.vessel_id));
-  const groups = [
-    { label: '🚨 SouthSeafood 种子船', options: seedFleet },
-    { label: '🚢 其他船舶', options: nonSeed }
-  ];
-  for (const group of groups) {
-    const og = document.createElement('optgroup');
-    og.label = group.label;
-    group.options.forEach(v => {
-      const opt = document.createElement('option');
-      opt.value = v.vessel_id;
-      opt.textContent = v.vessel_name + ' · ' + getVesselTypeShort(v.vessel_type);
-      og.appendChild(opt);
-    });
-    vesselSelect.appendChild(og);
-  }
-  vesselSelect.value = STATE.vesselId;
+// ============================================================
+// Autocomplete 船舶筛选器（只初始化一次）
+// ============================================================
+let _vesselAutocompleteInitialized = false;
 
-  const locSelect = document.getElementById('location-select');
+function initVesselAutocomplete() {
+  if (_vesselAutocompleteInitialized) {
+    // 已初始化，只需更新输入框的值
+    const input = document.getElementById('vessel-input');
+    if (input) {
+      const currentVessel = STATE.vesselById.get(STATE.vesselId);
+      if (currentVessel) input.value = currentVessel.vessel_name;
+    }
+    return;
+  }
+
+  const input = document.getElementById('vessel-input');
+  let dropdown = document.getElementById('vessel-dropdown');
+  if (!input || !dropdown) return;
+
+  _vesselAutocompleteInitialized = true;
+
+  // 将 dropdown 移到 body 下，彻底脱离所有父容器的层叠上下文限制
+  document.body.appendChild(dropdown);
+
+  // 构建船舶列表（按名称字典序排列）
+  const seedFleet = STATE.vessels
+    .filter(v => STATE.seedIds.has(v.vessel_id))
+    .sort((a, b) => a.vessel_name.localeCompare(b.vessel_name, 'zh-CN'));
+  const nonSeed = STATE.vessels
+    .filter(v => !STATE.seedIds.has(v.vessel_id))
+    .sort((a, b) => a.vessel_name.localeCompare(b.vessel_name, 'zh-CN'));
+
+  let highlightedIndex = -1;
+  let currentFilteredItems = [];
+
+  function getFilteredItems(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      // 无输入时显示全部，按分组排列
+      return [
+        ...seedFleet.map(v => ({ ...v, _group: '🚨 SouthSeafood 种子船', _isSeed: true })),
+        ...nonSeed.map(v => ({ ...v, _group: '🚢 其他船舶', _isSeed: false }))
+      ];
+    }
+    // 前缀匹配
+    const seedMatches = seedFleet
+      .filter(v => v.vessel_name.toLowerCase().startsWith(q))
+      .map(v => ({ ...v, _group: '🚨 SouthSeafood 种子船', _isSeed: true }));
+    const nonSeedMatches = nonSeed
+      .filter(v => v.vessel_name.toLowerCase().startsWith(q))
+      .map(v => ({ ...v, _group: '🚢 其他船舶', _isSeed: false }));
+    return [...seedMatches, ...nonSeedMatches];
+  }
+
+  function positionDropdown() {
+    const rect = input.getBoundingClientRect();
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.top = (rect.bottom + 4) + 'px';
+    dropdown.style.width = rect.width + 'px';
+  }
+
+  // 滚动时重新定位
+  window.addEventListener('scroll', function() {
+    if (dropdown.classList.contains('open')) {
+      positionDropdown();
+    }
+  }, true);
+
+  function renderDropdown(items) {
+    dropdown.innerHTML = '';
+    currentFilteredItems = items;
+    highlightedIndex = -1;
+
+    if (items.length === 0) {
+      dropdown.innerHTML = '<div class="dropdown-empty">未找到匹配的船舶</div>';
+      dropdown.classList.add('open');
+      positionDropdown();
+      return;
+    }
+
+    // 分组渲染
+    let currentGroup = '';
+    items.forEach((item, idx) => {
+      if (item._group !== currentGroup) {
+        currentGroup = item._group;
+        const groupLabel = document.createElement('div');
+        groupLabel.className = 'dropdown-group-label';
+        groupLabel.textContent = currentGroup;
+        dropdown.appendChild(groupLabel);
+      }
+
+      const div = document.createElement('div');
+      div.className = 'dropdown-item' + (item._isSeed ? ' is-seed' : '');
+      div.dataset.index = idx;
+
+      // 船名（高亮匹配前缀）
+      const query = input.value.trim().toLowerCase();
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'vessel-name';
+      if (query && item.vessel_name.toLowerCase().startsWith(query)) {
+        const prefix = item.vessel_name.substring(0, query.length);
+        const rest = item.vessel_name.substring(query.length);
+        nameSpan.innerHTML = `<span class="match-highlight">${escapeHtml(prefix)}</span>${escapeHtml(rest)}`;
+      } else {
+        nameSpan.textContent = item.vessel_name;
+      }
+
+      // 类型标签
+      const badge = document.createElement('span');
+      badge.className = 'vessel-type-badge';
+      badge.textContent = getVesselTypeShort(item.vessel_type);
+
+      div.appendChild(nameSpan);
+      div.appendChild(badge);
+
+      // 点击事件
+      div.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        selectVesselItem(item);
+      });
+
+      // 悬停高亮
+      div.addEventListener('mouseenter', function() {
+        highlightedIndex = idx;
+        updateHighlight();
+      });
+
+      dropdown.appendChild(div);
+    });
+
+    dropdown.classList.add('open');
+    positionDropdown();
+  }
+
+  function updateHighlight() {
+    const items = dropdown.querySelectorAll('.dropdown-item');
+    items.forEach((el, idx) => {
+      el.classList.toggle('highlighted', idx === highlightedIndex);
+    });
+  }
+
+  function selectVesselItem(item) {
+    input.value = item.vessel_name;
+    dropdown.classList.remove('open');
+    STATE.vesselId = item.vessel_id;
+    refreshAll();
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // --- 事件绑定 ---
+
+  // 输入事件：实时过滤
+  input.addEventListener('input', function() {
+    const items = getFilteredItems(this.value);
+    renderDropdown(items);
+  });
+
+  // 聚焦事件：展开下拉
+  input.addEventListener('focus', function() {
+    const items = getFilteredItems(this.value);
+    renderDropdown(items);
+  });
+
+  // 失焦事件：延迟关闭下拉（让点击事件先触发）
+  input.addEventListener('blur', function() {
+    setTimeout(() => {
+      dropdown.classList.remove('open');
+    }, 200);
+  });
+
+  // 键盘导航
+  input.addEventListener('keydown', function(e) {
+    const items = currentFilteredItems;
+    if (items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+      updateHighlight();
+      // 滚动到可见区域
+      const highlightedEl = dropdown.querySelector('.dropdown-item.highlighted');
+      if (highlightedEl) highlightedEl.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightedIndex = Math.max(highlightedIndex - 1, 0);
+      updateHighlight();
+      const highlightedEl = dropdown.querySelector('.dropdown-item.highlighted');
+      if (highlightedEl) highlightedEl.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < items.length) {
+        selectVesselItem(items[highlightedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  // 点击外部关闭下拉
+  document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('vessel-autocomplete');
+    if (wrap && !wrap.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  // 设置初始值
+  const currentVessel = STATE.vesselById.get(STATE.vesselId);
+  if (currentVessel) {
+    input.value = currentVessel.vessel_name;
+  }
+}
+
+// ============================================================
+// Autocomplete 地点筛选器
+// ============================================================
+let _locationAutocompleteInitialized = false;
+
+function initLocationAutocomplete() {
+  if (_locationAutocompleteInitialized) {
+    // 已初始化，只需更新输入框的值
+    const input = document.getElementById('location-input');
+    if (input) {
+      input.value = STATE.location === 'all' ? '' : STATE.location;
+    }
+    return;
+  }
+
+  const input = document.getElementById('location-input');
+  let dropdown = document.getElementById('location-dropdown');
+  if (!input || !dropdown) return;
+
+  _locationAutocompleteInitialized = true;
+
+  // 将 dropdown 移到 body 下
+  document.body.appendChild(dropdown);
+
+  // 构建地点列表
   const locs = new Set();
   STATE.vessels.forEach(v => {
     if (v.transitions) Object.keys(v.transitions).forEach(k => {
       k.split('->').forEach(l => locs.add(l.trim()));
     });
   });
-  locSelect.innerHTML = '<option value="all">全部位置</option>';
-  [...locs].sort().forEach(loc => {
-    const opt = document.createElement('option');
-    opt.value = loc;
-    opt.textContent = loc;
-    locSelect.appendChild(opt);
+  const locationItems = ['all', ...[...locs].sort()];
+
+  let highlightedIndex = -1;
+  let currentFilteredItems = [];
+
+  function getFilteredItems(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      return locationItems.map(loc => ({
+        value: loc,
+        label: loc === 'all' ? '📍 全部位置' : loc
+      }));
+    }
+    return locationItems
+      .filter(loc => loc === 'all' || loc.toLowerCase().includes(q))
+      .map(loc => ({
+        value: loc,
+        label: loc === 'all' ? '📍 全部位置' : loc
+      }));
+  }
+
+  function positionDropdown() {
+    const rect = input.getBoundingClientRect();
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.top = (rect.bottom + 4) + 'px';
+    dropdown.style.width = rect.width + 'px';
+  }
+
+  // 滚动时重新定位
+  window.addEventListener('scroll', function() {
+    if (dropdown.classList.contains('open')) {
+      positionDropdown();
+    }
+  }, true);
+
+  function renderDropdown(items) {
+    dropdown.innerHTML = '';
+    currentFilteredItems = items;
+    highlightedIndex = -1;
+
+    if (items.length === 0) {
+      dropdown.innerHTML = '<div class="dropdown-empty">未找到匹配的地点</div>';
+      dropdown.classList.add('open');
+      positionDropdown();
+      return;
+    }
+
+    items.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'dropdown-item' + (item.value === STATE.location ? ' selected' : '');
+      div.dataset.index = idx;
+      div.textContent = item.label;
+
+      div.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        selectLocationItem(item);
+      });
+
+      div.addEventListener('mouseenter', function() {
+        highlightedIndex = idx;
+        updateHighlight();
+      });
+
+      dropdown.appendChild(div);
+    });
+
+    dropdown.classList.add('open');
+    positionDropdown();
+  }
+
+  function updateHighlight() {
+    const items = dropdown.querySelectorAll('.dropdown-item');
+    items.forEach((el, idx) => {
+      el.classList.toggle('highlighted', idx === highlightedIndex);
+    });
+  }
+
+  function selectLocationItem(item) {
+    input.value = item.value === 'all' ? '' : item.value;
+    dropdown.classList.remove('open');
+    STATE.location = item.value;
+    refreshAll({ skipCluster: true });
+  }
+
+  // --- 事件绑定 ---
+
+  // 点击时始终弹出下拉框，显示全部选项（不做匹配过滤）
+  input.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const items = getFilteredItems('');
+    renderDropdown(items);
   });
 
-  const comSelect = document.getElementById('commodity-select');
-  comSelect.innerHTML = '<option value="all">全部商品</option>';
+  input.addEventListener('focus', function() {
+    const items = getFilteredItems('');
+    renderDropdown(items);
+  });
 
+  input.addEventListener('blur', function() {
+    setTimeout(() => {
+      dropdown.classList.remove('open');
+    }, 200);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    const items = currentFilteredItems;
+    if (items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+      updateHighlight();
+      const highlightedEl = dropdown.querySelector('.dropdown-item.highlighted');
+      if (highlightedEl) highlightedEl.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightedIndex = Math.max(highlightedIndex - 1, 0);
+      updateHighlight();
+      const highlightedEl = dropdown.querySelector('.dropdown-item.highlighted');
+      if (highlightedEl) highlightedEl.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < items.length) {
+        selectLocationItem(items[highlightedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('location-autocomplete');
+    if (wrap && !wrap.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  // 设置初始值
+  input.value = STATE.location === 'all' ? '' : STATE.location;
+}
+
+// ============================================================
+// Autocomplete 商品筛选器
+// ============================================================
+let _commodityAutocompleteInitialized = false;
+
+function initCommodityAutocomplete() {
+  if (_commodityAutocompleteInitialized) {
+    const input = document.getElementById('commodity-input');
+    if (input) {
+      input.value = STATE.commodity === 'all' ? '' : STATE.commodity;
+    }
+    return;
+  }
+
+  const input = document.getElementById('commodity-input');
+  let dropdown = document.getElementById('commodity-dropdown');
+  if (!input || !dropdown) return;
+
+  _commodityAutocompleteInitialized = true;
+
+  // 将 dropdown 移到 body 下
+  document.body.appendChild(dropdown);
+
+  // 构建商品列表
   function resolveCommodityLabel(report) {
     if (!report) return null;
     if (report.fish_name) return report.fish_name;
@@ -245,46 +620,157 @@ function renderFilters() {
     if (label) dynamicCommoditySet.add(label);
   });
 
+  let commodityItems;
   if (dynamicCommoditySet.size === 0) {
-    ['Seafood', 'Dry Goods', 'Electronics', 'Mixed', 'Other'].forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c;
-      opt.textContent = c;
-      comSelect.appendChild(opt);
-    });
+    commodityItems = ['all', 'Seafood', 'Dry Goods', 'Electronics', 'Mixed', 'Other'];
   } else {
-    Array.from(dynamicCommoditySet).sort().forEach(label => {
-      const opt = document.createElement('option');
-      opt.value = label;
-      opt.textContent = label;
-      comSelect.appendChild(opt);
+    commodityItems = ['all', ...Array.from(dynamicCommoditySet).sort()];
+  }
+
+  let highlightedIndex = -1;
+  let currentFilteredItems = [];
+
+  function getFilteredItems(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      return commodityItems.map(c => ({
+        value: c,
+        label: c === 'all' ? '📦 全部商品' : c
+      }));
+    }
+    return commodityItems
+      .filter(c => c === 'all' || c.toLowerCase().includes(q))
+      .map(c => ({
+        value: c,
+        label: c === 'all' ? '📦 全部商品' : c
+      }));
+  }
+
+  function positionDropdown() {
+    const rect = input.getBoundingClientRect();
+    dropdown.style.left = rect.left + 'px';
+    dropdown.style.top = (rect.bottom + 4) + 'px';
+    dropdown.style.width = rect.width + 'px';
+  }
+
+  // 滚动时重新定位
+  window.addEventListener('scroll', function() {
+    if (dropdown.classList.contains('open')) {
+      positionDropdown();
+    }
+  }, true);
+
+  function renderDropdown(items) {
+    dropdown.innerHTML = '';
+    currentFilteredItems = items;
+    highlightedIndex = -1;
+
+    if (items.length === 0) {
+      dropdown.innerHTML = '<div class="dropdown-empty">未找到匹配的商品</div>';
+      dropdown.classList.add('open');
+      positionDropdown();
+      return;
+    }
+
+    items.forEach((item, idx) => {
+      const div = document.createElement('div');
+      div.className = 'dropdown-item' + (item.value === STATE.commodity ? ' selected' : '');
+      div.dataset.index = idx;
+      div.textContent = item.label;
+
+      div.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        selectCommodityItem(item);
+      });
+
+      div.addEventListener('mouseenter', function() {
+        highlightedIndex = idx;
+        updateHighlight();
+      });
+
+      dropdown.appendChild(div);
+    });
+
+    dropdown.classList.add('open');
+    positionDropdown();
+  }
+
+  function updateHighlight() {
+    const items = dropdown.querySelectorAll('.dropdown-item');
+    items.forEach((el, idx) => {
+      el.classList.toggle('highlighted', idx === highlightedIndex);
     });
   }
 
-  if (STATE.commodity !== 'all') {
-    const currentOpt = Array.from(comSelect.options).find(opt => opt.value === STATE.commodity);
-    if (!currentOpt) {
-      STATE.commodity = 'all';
-      comSelect.value = 'all';
-    } else {
-      comSelect.value = STATE.commodity;
-    }
-  } else {
-    comSelect.value = 'all';
+  function selectCommodityItem(item) {
+    input.value = item.value === 'all' ? '' : item.value;
+    dropdown.classList.remove('open');
+    STATE.commodity = item.value;
+    refreshAll({ skipCluster: true });
   }
 
-  // 恢复地点筛选下拉框的值（renderFilters 重建了 DOM，导致选中值丢失）
-  if (STATE.location !== 'all') {
-    const currentLocOpt = Array.from(locSelect.options).find(opt => opt.value === STATE.location);
-    if (currentLocOpt) {
-      locSelect.value = STATE.location;
-    } else {
-      STATE.location = 'all';
-      locSelect.value = 'all';
+  // --- 事件绑定 ---
+
+  // 点击时始终弹出下拉框，显示全部选项（不做匹配过滤）
+  input.addEventListener('click', function(e) {
+    e.stopPropagation();
+    const items = getFilteredItems('');
+    renderDropdown(items);
+  });
+
+  input.addEventListener('focus', function() {
+    const items = getFilteredItems('');
+    renderDropdown(items);
+  });
+
+  input.addEventListener('blur', function() {
+    setTimeout(() => {
+      dropdown.classList.remove('open');
+    }, 200);
+  });
+
+  input.addEventListener('keydown', function(e) {
+    const items = currentFilteredItems;
+    if (items.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      highlightedIndex = Math.min(highlightedIndex + 1, items.length - 1);
+      updateHighlight();
+      const highlightedEl = dropdown.querySelector('.dropdown-item.highlighted');
+      if (highlightedEl) highlightedEl.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      highlightedIndex = Math.max(highlightedIndex - 1, 0);
+      updateHighlight();
+      const highlightedEl = dropdown.querySelector('.dropdown-item.highlighted');
+      if (highlightedEl) highlightedEl.scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (highlightedIndex >= 0 && highlightedIndex < items.length) {
+        selectCommodityItem(items[highlightedIndex]);
+      }
+    } else if (e.key === 'Escape') {
+      dropdown.classList.remove('open');
     }
-  } else {
-    locSelect.value = 'all';
-  }
+  });
+
+  document.addEventListener('click', function(e) {
+    const wrap = document.getElementById('commodity-autocomplete');
+    if (wrap && !wrap.contains(e.target)) {
+      dropdown.classList.remove('open');
+    }
+  });
+
+  // 设置初始值
+  input.value = STATE.commodity === 'all' ? '' : STATE.commodity;
+}
+
+function renderFilters() {
+  // 初始化 autocomplete（只初始化一次）
+  initVesselAutocomplete();
+  initLocationAutocomplete();
+  initCommodityAutocomplete();
 }
 
 // ============================================================
@@ -527,7 +1013,9 @@ function renderCluster() {
     .style('cursor', 'pointer')
     .on('click', function(event, d) {
       STATE.vesselId = d.id;
-      document.getElementById('vessel-select').value = d.id;
+      const vesselInput = document.getElementById('vessel-input');
+      const vessel = STATE.vesselById.get(d.id);
+      if (vesselInput && vessel) vesselInput.value = vessel.vessel_name;
       refreshAll();
     })
     .append('title').text(d => d.name + '\n类型: ' + getVesselTypeShort(d.type) + '\n种子船: ' + (d.seed ? '是' : '否'));
@@ -803,7 +1291,9 @@ function renderSimilar() {
 
 function selectVessel(id) {
   STATE.vesselId = id;
-  document.getElementById('vessel-select').value = id;
+  const vesselInput = document.getElementById('vessel-input');
+  const vessel = STATE.vesselById.get(id);
+  if (vesselInput && vessel) vesselInput.value = vessel.vessel_name;
   refreshAll();
 }
 
@@ -1234,23 +1724,9 @@ function initDashboard() {
       }
     };
 
-    // 左侧：船舶选择（切换主船，不重绘聚类）
-    document.getElementById('vessel-select').onchange = function(e) {
-      STATE.vesselId = e.target.value;
-      refreshAll({ skipCluster: true });
-    };
+    // 船舶选择已由 autocomplete 组件处理（initVesselAutocomplete）
 
-    // 左侧：位置筛选（不重绘聚类）
-    document.getElementById('location-select').onchange = function(e) {
-      STATE.location = e.target.value;
-      refreshAll({ skipCluster: true });
-    };
-
-    // 左侧：商品筛选（不重绘聚类）
-    document.getElementById('commodity-select').onchange = function(e) {
-      STATE.commodity = e.target.value;
-      refreshAll({ skipCluster: true });
-    };
+    // 左侧：位置筛选和商品筛选已由 autocomplete 组件处理
 
     // 左侧：快速过滤（这些会改变聚类数据，需要重绘）
     document.getElementById('filter-seed-only').onchange = function(e) {

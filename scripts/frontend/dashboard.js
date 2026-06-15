@@ -178,6 +178,86 @@ function getFilteredPings(vesselId) {
   return filterPingsByTime(mov.pings);
 }
 
+/**
+ * 从一组 pings 动态计算5维行为指标（与 preprocess.py 计算逻辑一致）
+ * 用于在曝光前/后时间段下重算雷达图和统计对比图
+ */
+function computeStatsFromPings(pings) {
+  if (!pings || pings.length === 0) return null;
+  const n = pings.length;
+  const protectedKeywords = ['preserve', 'nemo reef', 'don limpet'];
+  function isProtected(loc) {
+    if (!loc) return false;
+    const l = loc.toLowerCase();
+    return protectedKeywords.some(kw => l.includes(kw));
+  }
+  // 夜间定义：20:00–05:59（与 preprocess.py 一致）
+  function isNight(timeStr) {
+    const h = new Date(timeStr).getHours();
+    return h >= 20 || h < 6;
+  }
+  let totalDwell = 0, protectedDwell = 0, nightCount = 0;
+  const locCounts = {};
+  pings.forEach(p => {
+    const dwell = p.dwell || 0;
+    totalDwell += dwell;
+    if (isProtected(p.location)) protectedDwell += dwell;
+    if (isNight(p.time)) nightCount++;
+    locCounts[p.location] = (locCounts[p.location] || 0) + 1;
+  });
+  const avgDwellHours = totalDwell / n / 3600;
+  const protectedDwellRatio = totalDwell > 0 ? protectedDwell / totalDwell : 0;
+  const nightFishingRatio = nightCount / n;
+  const locProbs = Object.values(locCounts).map(c => c / n);
+  const entropy = -locProbs.reduce((s, p) => s + (p > 0 ? p * Math.log2(p) : 0), 0);
+  const times = pings.map(p => new Date(p.time).getTime()).sort((a, b) => a - b);
+  const daysSpan = Math.max(1, (times[times.length - 1] - times[0]) / 86400000);
+  const locationsPerDay = n / daysSpan;
+  return { avg_dwell_hours: avgDwellHours, protected_dwell_ratio: protectedDwellRatio,
+           night_fishing_ratio: nightFishingRatio, entropy, locations_per_day: locationsPerDay };
+}
+
+/**
+ * 返回当前时间过滤下的船舶统计对象。
+ * 全部(all)时直接用预计算数据；曝光前/后/自定义时从过滤 pings 重新计算5维指标。
+ */
+function getVesselStatsForTime(vesselId) {
+  const base = STATE.vesselById.get(vesselId);
+  if (!base) return null;
+  if (STATE.timePreset === 'all' && !STATE.customTimeStart) return base;
+  const pings = getFilteredPings(vesselId);
+  if (!pings || pings.length === 0) return base;
+  const computed = computeStatsFromPings(pings);
+  return computed ? Object.assign({}, base, computed) : base;
+}
+
+// 全局均值缓存（避免每次渲染遍历296艘船）
+let _globalStatsCacheKey = null;
+let _globalStatsCache = null;
+
+/** 获取当前时间段下全体船舶5维指标的均值（用于统计对比图基线） */
+function getGlobalAvgStats() {
+  const key = STATE.timePreset + '|' + (STATE.customTimeStart ? STATE.customTimeStart.toISOString() : '') +
+              '|' + (STATE.customTimeEnd ? STATE.customTimeEnd.toISOString() : '');
+  if (_globalStatsCache && _globalStatsCacheKey === key) return _globalStatsCache;
+  const dims = ['avg_dwell_hours', 'night_fishing_ratio', 'protected_dwell_ratio', 'locations_per_day', 'entropy'];
+  if (STATE.timePreset === 'all' && !STATE.customTimeStart) {
+    const result = {};
+    dims.forEach(k => { result[k] = d3.mean(STATE.vessels, v => v[k] || 0) || 0; });
+    _globalStatsCache = result; _globalStatsCacheKey = key;
+    return result;
+  }
+  // 曝光前/后：遍历所有船重算
+  const allComputed = STATE.vessels.map(v => {
+    const pings = getFilteredPings(v.vessel_id);
+    return pings && pings.length > 0 ? computeStatsFromPings(pings) : null;
+  }).filter(Boolean);
+  const result = {};
+  dims.forEach(k => { result[k] = d3.mean(allComputed, s => s[k] || 0) || 0; });
+  _globalStatsCache = result; _globalStatsCacheKey = key;
+  return result;
+}
+
 // ============================================================
 // 渲染：顶部控制栏（已移除分析对象下拉框）
 // ============================================================
@@ -1057,7 +1137,7 @@ function renderRadar() {
   const container = document.getElementById('radar-viz');
   container.innerHTML = '';
   const ids = STATE.selectedVesselIds.length > 0 ? STATE.selectedVesselIds : [STATE.vesselId];
-  const selectedVessels = ids.map(id => STATE.vesselById.get(id)).filter(Boolean);
+  const selectedVessels = ids.map(id => getVesselStatsForTime(id)).filter(Boolean);
   if (selectedVessels.length === 0) {
     container.innerHTML = '<div class="loading" style="min-height:80px">选择船舶后显示</div>';
     return;
@@ -1081,7 +1161,9 @@ function renderRadar() {
   if (seedFleet.length > 0) {
     const seedAvg = { vessel_id: '__seed_avg__', vessel_name: 'SouthSeafood 平均', __seedAverage: true };
     dims.forEach(dim => {
-      seedAvg[dim.key] = avg(seedFleet, dim.key);
+      // 用时间过滤后的均值，让曝光前/后的 SouthSeafood 基线也随之变化
+      const filtered = seedFleet.map(v => getVesselStatsForTime(v.vessel_id)).filter(Boolean);
+      seedAvg[dim.key] = filtered.length > 0 ? d3.mean(filtered, v => v[dim.key] || 0) : avg(seedFleet, dim.key);
     });
     series.push(seedAvg);
   }
@@ -1312,8 +1394,8 @@ function renderStatsCompare() {
   const g = svg.append('g').attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
   const ids = STATE.selectedVesselIds.length > 0 ? STATE.selectedVesselIds : [STATE.vesselId];
-  const vessels = ids.map(id => STATE.vesselById.get(id)).filter(Boolean);
-  const mainVessel = STATE.vesselById.get(STATE.vesselId);
+  const vessels = ids.map(id => getVesselStatsForTime(id)).filter(Boolean);
+  const mainVessel = getVesselStatsForTime(STATE.vesselId);
 
   const categories = [
     { key: 'avg_dwell_hours', label: '停留(h)', max: 20 },
@@ -1333,9 +1415,11 @@ function renderStatsCompare() {
 
   g.append('g').call(d3.axisLeft(y).ticks(4).tickFormat(d => (d * 100).toFixed(0) + '%'));
 
+  // 全局均值随时间段变化
+  const globalRaw = getGlobalAvgStats();
   const globalAvg = {};
   categories.forEach(cat => {
-    globalAvg[cat.key] = d3.mean(STATE.vessels, v => Math.min(1, (v[cat.key] || 0) / cat.max)) || 0;
+    globalAvg[cat.key] = Math.min(1, (globalRaw[cat.key] || 0) / cat.max);
   });
 
   const hasSelection = STATE.selectedVesselIds.length > 0;
@@ -1635,6 +1719,7 @@ function renderChordCharts() {
 // ============================================================
 function refreshAll(options) {
   // options: { skipCluster: true } 表示跳过聚类视图重绘
+  _globalStatsCache = null; // 时间段变化时清空全局均值缓存
   renderTopBar();
   renderFilters();
   renderMap();

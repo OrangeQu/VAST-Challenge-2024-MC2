@@ -173,19 +173,6 @@
       }
     }
 
-    // ---- 绘制曝光日期参考线 ----
-    function drawExposureLine(yStart, yEnd) {
-      const exposureDate = STATE.exposureDate;
-      if (exposureDate >= startDate && exposureDate <= endDate) {
-        const x = xScale(exposureDate);
-        g.append('line').attr('x1', x).attr('y1', yStart).attr('x2', x).attr('y2', yEnd)
-          .attr('stroke', '#ef4444').attr('stroke-dasharray', '6,3').attr('stroke-width', 1.5);
-        g.append('text').attr('x', x + 3).attr('y', yStart + 12)
-          .attr('font-size', '8px').attr('fill', '#ef4444').attr('font-weight', '700')
-          .text('📢 曝光日');
-      }
-    }
-
     // ---- 绘制单艘船的停留色块行 ----
     function drawDwellRow(y, rowH, pings, label, labelColor, isMain) {
       const barH = Math.max(8, rowH - 4);
@@ -266,7 +253,6 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('📍 位置与停留' + (STATE.location !== 'all' ? '  |  筛选: ' + STATE.location : '') + (STATE.filterProtected ? '  |  🛡️ 仅保护区' : ''));
     drawMonthLines(currentY, currentY + e1);
-    drawExposureLine(currentY, currentY + e1);
 
     // 计算行数：主船 + 聚集船
     const totalRows1 = 1 + clusterPingsList.length;
@@ -296,7 +282,6 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('🚢 移动模式');
     drawMonthLines(currentY, currentY + e2);
-    drawExposureLine(currentY, currentY + e2);
 
     const rowH2 = Math.min(22, (e2 - 30) / 2);
 
@@ -465,7 +450,6 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('📦 港口报告');
     drawMonthLines(currentY, currentY + e3);
-    drawExposureLine(currentY, currentY + e3);
 
     // 获取所有报告
     const reports = STATE.deliveryLinks || [];
@@ -613,7 +597,6 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('🏷️ 商品关联');
     drawMonthLines(currentY, currentY + e4);
-    drawExposureLine(currentY, currentY + e4);
 
     const commodityColors = {
       'Seafood': '#b91c1c', 'Dry Goods': '#c2410c', 'Electronics': '#b91c1c',
@@ -853,7 +836,6 @@
       .attr('text-anchor', 'end').attr('font-size', '10px').attr('font-weight', '700').attr('fill', '#1e293b')
       .text('📈 交易趋势');
     drawMonthLines(currentY, currentY + e5);
-    drawExposureLine(currentY, currentY + e5);
 
     // 按天聚合交易量
     function getDailyTons(reports) {
